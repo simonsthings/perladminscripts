@@ -1,0 +1,54 @@
+
+
+
+(- Rüberkopieren (per SSH?)  )
+
+ - start matlab
+ 
+ - cd into ordner (per hand)
+ 
+ - call /.../runtasksheet2.m
+ 
+ 
+ runtasksheet2.m:
+ ------------------
+    sheet2task1
+    disp('this was task 1');pause;
+    
+    sheet2task2(354,345,3245,34)
+    disp('this was task 2');pause;
+    
+    sheet2task3
+    disp('this was task 3');pause;
+    
+    sheet2task4
+    disp('this was task 4');pause;
+    
+    sheet2task5
+    disp('this was task 5');pause;
+    
+    sheet2task6
+    disp('this was task 6');pause;
+    
+    sheet2task7
+    disp('this was task 7');pause;
+    
+    sheet2task8
+    disp('this was task 8');pause;
+    
+    sheet2task9
+    disp('this was task 9');pause;
+    
+    sheet2task10
+    disp('this was task 10');pause;
+    
+    sheet2task11
+    disp('this was task 11');pause;
+    
+    sheet2task12(2346)
+    disp('this was task 12');pause;
+    
+    sheet2task13
+    disp('this was task 13');pause;
+    
+
