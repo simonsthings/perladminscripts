@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Create New Subversion Repository</title>
+</head>
+<body bgcolor="#E0E0E0" text="#000000">
+<h1>Create a new ISIP software project</h1>
+You use this page to automatically create a new Subversion repository and Trac project management project for any Software development you want to do at the ISIP. This is not only for C/C++ or Java based projects, but you are also welcome to create a project for your collection of matlab scripts. Have fun! -Simon
+
+<form action="/createproject.pl" method="get">
+	<p><b>Unix Folder Name:</b><br>
+	<input size="40" maxlength="40" name="UnixName"> (Example: biosignalscripts) Please avoid spaces here.</p>
+	<p><b>Project Title:</b><br>
+	<input size="40" maxlength="40" name="NiceName"> (Example: Biosignal Analysis Scripts) Please avoid quotation marks " and ' here.</p>
+
+	<p><b>Project Description:</b><br>
+	<textarea rows="4" cols="40" name="ProjectDescription"></textarea></p>
+
+	<p><b>Project Owner:</b> (LDAP name)<br>
+	<input size="40" maxlength="40" name="OwnerName"> (Example: simon) Only the owner and root will be able to change access rights later.</p>
+
+	<b>Initial Access Rights:</b><br>
+	<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 >
+	<TR ALIGN="left" VALIGN="middle">
+		<TD> <textarea rows="11" cols="15" name="InitialAccessRights">* = rw
+</textarea> </TD>
+		<TD valign="top">
+<pre>
+Example:
+
+  * =
+  simon = rw
+  kier = r
+
+means:
+  everyone (*) has no access (* = )
+  except simon, who has full access (simon = rw)
+  and kier, who has read access (kier = r).
+  (one LDAP name per line)
+</pre>
+		</TD>
+	</TR>
+	</TABLE><br>
+
+
+
+	<p><input type="submit" value="Absenden"></p>
+</form>
+</body>
+</html>
