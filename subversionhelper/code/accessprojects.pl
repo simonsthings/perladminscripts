@@ -59,7 +59,7 @@ foreach my $UnixName (@svnrepos)
 	close (SETTINGSFILE);
 	
 	print "<TR ALIGN='middle' VALIGN='middle' bgcolor='$tablerowbgcolor'>";
-	print "<TD>$NiceName&nbsp;&nbsp;&nbsp;&nbsp;</TD>    <TD align='left'>http://sourcecode.isip.uni-luebeck.de/svn/$UnixName</TD>    <TD>$OwnerName</TD>";
+	print "<TD>$NiceName&nbsp;&nbsp;&nbsp;&nbsp;</TD>    <TD align='left'>https://sourcecode.isip.uni-luebeck.de/svn/$UnixName</TD>    <TD>$OwnerName</TD>";
 	print "</TR>";
 	
 	if ($tablerowbgcolor eq "#edf4f9")

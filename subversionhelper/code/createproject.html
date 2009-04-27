@@ -5,16 +5,16 @@
 </head>
 <body bgcolor="#E0E0E0" text="#000000">
 <h1>Create a new ISIP software project</h1>
-You use this page to automatically create a new Subversion repository and Trac project management project for any Software development you want to do at the ISIP. This is not only for C/C++ or Java based projects, but you are also welcome to create a project for your collection of matlab scripts. Have fun! -Simon
+You use this page to automatically create a new Subversion repository for any software development you want to do at the ISIP. This is not only for C/C++ or Java based projects, but you are also welcome to create a project for your collection of matlab scripts or even LaTeX texts. Have fun! -Simon
 
 <form action="/createproject.pl" method="get">
 	<p><b>Unix Folder Name:</b><br>
-	<input size="40" maxlength="40" name="UnixName"> (Example: biosignalscripts) Please avoid spaces here.</p>
+	<input size="40" maxlength="40" name="UnixName"> (Example: biosignalscripts) Please avoid spaces and special characters here.</p>
 	<p><b>Project Title:</b><br>
 	<input size="40" maxlength="40" name="NiceName"> (Example: Biosignal Analysis Scripts) Please avoid quotation marks " and ' here.</p>
 
 	<p><b>Project Description:</b><br>
-	<textarea rows="4" cols="40" name="ProjectDescription"></textarea></p>
+	<textarea rows="4" cols="40" name="ProjectDescription"></textarea>Please avoid quotation marks " and ' here.</p>
 
 	<p><b>Project Owner:</b> (LDAP name)<br>
 	<input size="40" maxlength="40" name="OwnerName"> (Example: simon) Only the owner and root will be able to change access rights later.</p>
