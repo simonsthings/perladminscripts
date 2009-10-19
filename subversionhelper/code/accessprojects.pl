@@ -37,12 +37,12 @@ print "<center>";
 print "<h1>Accessing your SVN repository</h1>\n";
 print "Here is the URL you need to give your SVN client so that it can access the Subversion repository:<br>\n";
 print "<br>";
-print "<font color='grey'>( Copy&Paste the <b>SVN client URL</b> to your svn client. )</font><br>\n";
+print "<font color='grey'>( Copy&Paste the complete <b>SVN client URL</b> to your svn client. )</font><br>\n";
 print "<br><br>";
 
 #print "jzgfghfbbbbbbbbbbbbbbbbbbbbbbbfhzuti<br>";
 print "<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 width='100%'>";
-print "<TR ALIGN='middle' VALIGN='middle' bgcolor='#6b7f93' text='#ffffff' >    <TH><font color='white'>Project Name</font></TH>  <TH><font color='white'>SVN client URL</font></TH>  <TH><font color='white'>Project Owner</font></TH>    </TR>";
+print "<TR ALIGN='middle' VALIGN='middle' bgcolor='#6b7f93' text='#ffffff' >    <TH><font color='white'>SVN client URL</font></TH>  <TH><font color='white'>Project Name</font></TH>  <TH><font color='white'>Project Owner</font></TH>    </TR>";
 my $tablerowbgcolor = "#ffffff";
 my @ownerfilelines;
 foreach my $UnixName (@svnrepos) 
@@ -59,7 +59,7 @@ foreach my $UnixName (@svnrepos)
 	close (SETTINGSFILE);
 	
 	print "<TR ALIGN='middle' VALIGN='middle' bgcolor='$tablerowbgcolor'>";
-	print "<TD>$NiceName&nbsp;&nbsp;&nbsp;&nbsp;</TD>    <TD align='left'>https://sourcecode.isip.uni-luebeck.de/svn/$UnixName</TD>    <TD>$OwnerName</TD>";
+	print "<TD align='left'>https://sourcecode.isip.uni-luebeck.de/svn/<b>$UnixName</b></TD>   <TD><a href='https://sourcecode.isip.uni-luebeck.de/viewvc/$UnixName/?view=log'>$NiceName</a></TD>     <TD>$OwnerName</TD>";
 	print "</TR>";
 	
 	if ($tablerowbgcolor eq "#edf4f9")
