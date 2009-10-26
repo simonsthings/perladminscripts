@@ -20,7 +20,7 @@ my $cmd;
 my $cmdoutput;
 
 # change this for new courses!
-my $coursename = "DSP for BME";
+my $coursename = "DSP for BME 09-10";
 my $passwordlength = 8 ;
 
 #print "Content-type: text/html\n\n";

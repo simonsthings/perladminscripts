@@ -79,7 +79,7 @@ else
 	print "    <tr><td>Your PIN:</td> <td><input type='password' name='mypin'></td></tr>";
 	print "    <tr><td>Your Zip File:</td> <td><input type='file' name='myfile' accept='text/*' maxlength='2097152'></td></tr>";
 	print "    </table>";
-	print "    Please mention the task sheet number in your zip file, e.g., \"&lt;yourname&gt;-tasksheet2.zip\".<br>";
+	print "    Please mention the task sheet number in your zip file, e.g., \"&lt;yourname&gt;-tasksheet2.zip\". The only allowed characters for the file name are A-Z, a-z, 0-9 and - .<br>";
 	print "    It has been noticed that the submission does not work with IE. If you have problems, try using Firefox with this page.<br>";
 	# print "    <font color='red'> 12:00 Deadline has passed. This submission system will be closed at 14:00.</font><br>";
 	print "    <input type='hidden' name='coursename' value='$coursename'><br>\n";
