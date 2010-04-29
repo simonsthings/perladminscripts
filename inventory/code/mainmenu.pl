@@ -24,6 +24,20 @@ print "<h1>ISIP Inventory App</h1>\n";
 print "(Mount <a href='https://inventory.isip.uni-luebeck.de/items/'>https://inventory.isip.uni-luebeck.de/items/</a> as a network drive for uploading images via WebDAV.)<br>\n";
 print "<br>\n";
 
+#create item folder if it does not exist yet:
+if (!(-e "$itemroot/."))
+{
+	$cmd = "mkdir -p \"$itemroot/\"";
+	my @mkdirerror2 = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
+	if ($?) 
+	{
+		print "<pre>@mkdirerror2</pre> <br>\n";
+		print '<font color="red">Careful here: Creating the item folder for the first time has not worked! Read the gray screen output to find out why.</font>';
+	}
+	else {print "The item folder has been created. This is the first execution on a new server, isn't it?";}
+}
+
+
 $cmd = "ls -1A $itemroot/";
 my @allitemfolders = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
 if ($?) {print '<font color="red">Careful here: Listing all item folders has not worked! Read the gray screen output to find out why.</font>';};
