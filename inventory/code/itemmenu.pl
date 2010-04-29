@@ -5,9 +5,17 @@ use CGI;
 my $cgi = new CGI;
 use CGI::Carp qw(fatalsToBrowser);
 
+use DBI;    
+my $dbargs = {AutoCommit => 0,
+              PrintError => 1};
+my $dbh = DBI->connect("dbi:SQLite:dbname=../db/iteminfos.db","","",$dbargs);
+    if ($dbh->err()) { die "$DBI::errstr\n"; }
+        
+
+
 my $itemroot = "/var/www/inventory/items";
 
-my $itemfolder = $cgi->param('itemfolder');
+my $item_folder = $cgi->param('itemfolder');
 
 my $cmd;
 my $cmdoutput;
@@ -16,30 +24,30 @@ print "Content-type: text/html\n\n";
 print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
 print "<html><head><title>ISIP Inventory Webapplication</title></head><body bgcolor='#E0E0E0'>\n";
 print "<h1>ISIP Inventory: Item Menu</h1>\n";
+print "<a href='/'>Back to List</a>";
 
+#my %categories;
+#my $categoryname;
+#my %items;
 
-my %categories;
-my $categoryname;
-my %items;
-
-my $inifilename = "$itemroot/$itemfolder/iteminfos.ini";
-my %itemhash;	# enth‰lt nach dem Einlesen die gesamten Daten eines Inventargegenstands
-my $hashkey; 	# speichert tempor‰r verschiedene Eigenschaftsnamen... siehe unten! 
+#my $inifilename = "$itemroot/$itemfolder/iteminfos.ini";
+#my %itemhash;	# enth‰lt nach dem Einlesen die gesamten Daten eines Inventargegenstands
+#my $hashkey; 	# speichert tempor‰r verschiedene Eigenschaftsnamen... siehe unten! 
 
 # Den Ordner des Inventargegenstandes kennen wir schon vor dem Einlesen der ini-Datei:
-$itemhash{"itemfolder"} = $itemfolder;
+#$itemhash{"itemfolder"} = $itemfolder;
 
 # Teste, ob bereits eine ini-Datei im momentan betrachteten Verzeichnis existiert.
 # Wenn ja, dann lies die ini-Datei ein.
 # Wenn keine ini-datei existiert, ist der Geganstand wohl neu im Inventar.
-if (-e $inifilename)
-{
+#if (-e $inifilename)
+#{
 	# Wenn wir hier ankommen, heiﬂt das, dass eine ini-Datei im Verzeichnis $itemroot/$itemfolder existiert.
 	# Also lies sie ein:
-	open(MYINPUTFILE, "<$inifilename"); # open for input
-	my @lines = <MYINPUTFILE>; # read file into list
-	foreach my $line (@lines) # loop thru list
-	{
+#	open(MYINPUTFILE, "<$inifilename"); # open for input
+#	my @lines = <MYINPUTFILE>; # read file into list
+#	foreach my $line (@lines) # loop thru list
+#	{
 		#print "$line <br>\n"; # print in sort order
 
 
@@ -65,10 +73,10 @@ if (-e $inifilename)
 		#
 		#
 		## Flexiblerer Ansatz:
-		if ( $line =~ /^(.*)\s=\s\"(.*)\"$/g )
-		{
-			$itemhash{$1} = $2;
-		}
+#		if ( $line =~ /^(.*)\s=\s\"(.*)\"$/g )
+#		{
+#			$itemhash{$1} = $2;
+#		}
 		
 
 		## Lesbarer Ansatz:
@@ -98,18 +106,18 @@ if (-e $inifilename)
 		#}
 
 
-	}
-	close(MYINPUTFILE);
-}
-else # ...Wenn also keine .ini-datei gefunden wurde:
-{
+#	}
+#	close(MYINPUTFILE);
+#}
+#else # ...Wenn also keine .ini-datei gefunden wurde:
+#{
 	# add to category "new"
-	$itemhash{"itemcategory"} = "-new-";
-	$itemhash{"itemlocation"} = "-new-";
-	$itemhash{"itemname"} = "-new-";
-	$itemhash{"itemuser"} = "-new-";
+#	$itemhash{"itemcategory"} = "-new-";
+#	$itemhash{"itemlocation"} = "-new-";
+#	$itemhash{"itemname"} = "-new-";
+#	$itemhash{"itemuser"} = "-new-";
 	#$categoryname = $itemhash{itemcategory};
-}
+#}
 
 #print "ITEMcategory   key= -itemcategory- ...value= -$itemhash{itemcategory}- <br>\n";
 #$items{$itemfolder} = \%itemhash;
@@ -138,18 +146,34 @@ else # ...Wenn also keine .ini-datei gefunden wurde:
 #  $categoryitems ist in Wirklichkeit ein Arrray der alle Items einer Kategorie enth‰lt.)
 # Hier wird die aktuelle Kategorie ausgegeben:
 
-my $thisfolder=$itemfolder;
+#my $thisfolder=$itemfolder;
 
-print "<h3>Item: $itemhash{\"itemname\"}</h3>";
+
+my @itemrow = $dbh->selectrow_array("SELECT item_folder,based_on_folder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,current_user,item_invoicedate,item_uniinvnum,item_category FROM items WHERE item_folder='$item_folder';");
+
+my $item_folder = @itemrow[0];
+my $item_basedon = @itemrow[1];
+my $item_name = @itemrow[2];
+my $item_description = @itemrow[3];
+my $item_state = @itemrow[4];
+my $item_wikiurl = @itemrow[5];
+my $item_room = @itemrow[6];
+my $item_shelf = @itemrow[7];
+my $item_currentuser = @itemrow[8];
+my $item_invoicedate = @itemrow[9];
+my $item_inventorynumber = @itemrow[10];
+my $item_category = @itemrow[11];
+
+print "<h3>Item: $item_name</h3>";
 
 
 ## Anzeigen der Miniatur-Photos:
 #
 # Die HTML-Zeile soll anklickbar sein, also m¸ssen wir den HTML-Link vorbereiten:
-my $itemlink = "/items/$thisfolder/dummy";
+#my $itemlink = "/items/$item_folder/dummy";
 my @otheritemfilenames;
 
-$cmd = "ls -1A $itemroot/$thisfolder";
+$cmd = "ls -1A $itemroot/$item_folder";
 my @allitemsfiles = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
 if ($?) {print '<font color="red">Careful here: It seems that the above command has not worked! Read the gray screen output to find out why.</font>';};
 # Chopping off the line breaks from all array elements (otherwise the comparison below will not work):
@@ -159,13 +183,13 @@ foreach my $imagefilename (@allitemsfiles)
 {
 	if ((substr($imagefilename, -4) eq (".jpg")) or (substr($imagefilename, -4) eq (".png")) or (substr($imagefilename, -4) eq (".gif")))
 	{
-		my $thumbnailfile = "$itemroot/../thumbs/$thisfolder/$imagefilename";
+		my $thumbnailfile = "$itemroot/../thumbs/$item_folder/$imagefilename";
 
 		# generate thumbnail if it does not exist yet
 		if (!(-e $thumbnailfile))
 		{
-			`mkdir $itemroot/../thumbs/$thisfolder`;
-			$cmd = "convert $itemroot/$thisfolder/$imagefilename -resize x30 $thumbnailfile";
+			`mkdir $itemroot/../thumbs/$item_folder`;
+			$cmd = "convert $itemroot/$item_folder/$imagefilename -resize x30 $thumbnailfile";
 			my @outputlines = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
 
 			if ($?) {print "<pre>@outputlines</pre> <br>\n";print '<font color="red">Careful here: It seems that the above command has not worked! Read the gray screen output to find out why.</font>';};
@@ -176,7 +200,7 @@ foreach my $imagefilename (@allitemsfiles)
 		}
 
 		# link to thumb				
-		print "<a href='http://auxus.isip.uni-luebeck.de/inventory/items/$thisfolder/$imagefilename'><img border=0 src='http://auxus.isip.uni-luebeck.de:80/inventory/thumbs/$thisfolder/$imagefilename'></a> ";
+		print "<a href='items/$item_folder/$imagefilename'><img border=0 src='thumbs/$item_folder/$imagefilename'></a> ";
 	}
 	else
 	{
@@ -192,16 +216,19 @@ foreach my $imagefilename (@allitemsfiles)
 # enth‰lt. Erst kommen die ‹berschriften, ...
 print "<form action='/saveitem.pl' method='get'>\n";
 print "<table border=1>";
-print "<tr><th>Item Name</th><td><input type='text' name='itemname' value='$itemhash{\"itemname\"}'></td></tr>";
-print "<tr><th>Item Description</th><td><textarea  name='itemdescription' >$itemhash{\"itemdescription\"}</textarea></td></tr>";
-print "<tr><th>Item State</th><td>
-    <input type=\"radio\" name=\"itemstate\" value=\"Functional\" checked> Functional
-    <input type=\"radio\" name=\"itemstate\" value=\"Partly Functional\"> Partly Functional
-    <input type=\"radio\" name=\"itemstate\" value=\"Destroyed\"> Destroyed
- </td></tr>";
-print "<tr><th>ISIP Wiki URL (<a href='$itemhash{\"itemwikiurl\"}'>visit</a>)</th><td><input type='text' name='itemwikiurl' value='$itemhash{\"itemwikiurl\"}'> (copy&paste URL here) </td></tr>";
+print "<tr><th>Item Name</th><td><input type='text' name='item_name' value='$item_name'><font size='2'>(unix folder: \"$item_folder\", based on \"$item_basedon\")</font></td></tr>";
+print "<tr><th>Item Description</th><td><textarea  name='item_description' >$item_description</textarea></td></tr>";
+print "<tr><th>Item State</th><td>";
+my $statestring = "";
+if ($item_state eq "Functional") {$statestring = "checked";}
+else {$statestring = "";}
+print "    <input type=\"radio\" name=\"item_state\" value=\"Functional\" $statestring> Functional";
+print "    <input type=\"radio\" name=\"item_state\" value=\"Partly Functional\" $statestring> Partly Functional";
+print "    <input type=\"radio\" name=\"item_state\" value=\"Destroyed\" $statestring> Destroyed";
+print " </td></tr>";
+print "<tr><th>ISIP Wiki URL (<a href='$item_wikiurl'>visit</a>)</th><td><input type='text' name='item_wikiurl' value='$item_wikiurl'> (copy&paste URL here) </td></tr>";
 
-print "<tr><th>Room</th><td><select name='itemlocation' size='1' >";
+print "<tr><th>Room</th><td><select name='item_room' size='1' >";
 print "<option>Room 27: Biosignal Lab</option>";
 print "<option>Room XX: Kitchen</option>";
 print "<option>Room XX: SysAdmin Room (Thomas)</option>";
@@ -211,8 +238,8 @@ print "<option>Room XX: Audio Lab</option>";
 print "<option>Room XX: Secretary Room (Christiane)</option>";
 print "<option>Room 25: Office of Alex, Radek, Simon, Thet</option>";
 print "<option>Room XX: Office of Alfred</option>";
-print "<option>Room XX: Office of Christian & Cristina</option>";
-print "<option selected>Room XX: Office of Uli H.</option>";
+print "<option value='6'>Room XX: Office of Christian & Cristina</option>";
+print "<option value='7' selected>Room XX: Office of Uli H.</option>";
 print "<option>Room XX: Office of Chung</option>";
 print "<option>Room XX: Office of Tiemin</option>";
 print "<option>Room XX: Office of Florian</option>";
@@ -221,15 +248,17 @@ print "<option>Room XX: Office of Kunal</option>";
 print "<option>Room XX: Seminar Room</option>";
 print "<option>Room XX: Archive</option>";
 print "<option>Other</option>";
-print "</select> <b>Specific Location: </b> <input type='text' name='itemdescription' value='$itemhash{\"itemspecificlocation\"}'></td></tr>";
+print "</select> <b>Specific Location: </b> <input type='text' name='item_shelf' value='$item_shelf'></td></tr>";
 
-print "<tr><th>Current User</th><td><input type='text' name='currentuser' value='$itemhash{\"currentuser\"}'></td></tr>";
-print "<tr><th>Invoice Date</th><td><input type='text' name='invoicedate' value='$itemhash{\"invoicedate\"}'> (german: Rechnungsdatum)</td></tr>";
-print "<tr><th>University Inventory Number</th><td><input type='text' name='iteminventorynumber' value='$itemhash{\"iteminventorynumber\"}'> </td></tr>";
+print "<tr><th>Current User</th><td><input type='text' name='item_currentuser' value='$item_currentuser'></td></tr>";
+print "<tr><th>Invoice Date</th><td><input type='text' name='item_invoicedate' value='$item_invoicedate'> (german: Rechnungsdatum)</td></tr>";
+print "<tr><th>University Inventory Number</th><td><input type='text' name='item_inventorynumber' value='$item_inventorynumber'> </td></tr>";
 print "</table>";
 
-print "    <input type='hidden' name='coursename' value='\$coursename'>\n";
-print "    <br><input type='submit' value='Update! (not implemented yet)'>";
+print "    <input type='hidden' name='item_folder' value='$item_folder'>\n";
+print "    <input type='hidden' name='item_basedon' value='$item_basedon'>\n";
+print "    <input type='hidden' name='item_category' value='$item_category'>\n";
+print "    <br><input type='submit' value='Save!'>";
 print "</form>";
 
 if (@otheritemfilenames)
