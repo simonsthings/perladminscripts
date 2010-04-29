@@ -110,8 +110,8 @@ $dbh->disconnect();
 	print "<table border=1>";
 	print "<tr>";
 	print "<th>Item Name</th>";
-	print "<th>Room</th>";
 	print "<th>Photos</th>";
+	print "<th>Room</th>";
 	print "<th>Folder</th>";
 	print "</tr>";
 	# ... dann kommen die eigentlichen Inventurgegenstände.
@@ -143,7 +143,6 @@ $dbh->disconnect();
 		# Hier wird dann die eigentliche Zeile der HTML-Tabelle ausgegeben:
 		print "<tr>\n";
 		print "<td width=50><a href='$itemfolderlink'>$item_name</a></td>\n";
-		print "<td><a href='$itemfolderlink'>$item_room</a></td>\n";
 		print "<td>\n";
 		
 		$cmd = "ls -1A $itemroot/$item_folder";
@@ -189,6 +188,7 @@ $dbh->disconnect();
 
 		#print "@allitemsfiles";
 		print "</td>\n";
+		print "<td><a href='$itemfolderlink'>$item_room</a></td>\n";
 		print "<td><a href='$itemfolderlink'>$item_folder</a></td>\n";
 		print "</tr>\n";
 	}
