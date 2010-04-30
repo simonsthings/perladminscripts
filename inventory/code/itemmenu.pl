@@ -23,8 +23,7 @@ my $cmdoutput;
 print "Content-type: text/html\n\n";
 print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
 print "<html><head><title>ISIP Inventory Webapplication</title></head><body bgcolor='#E0E0E0'>\n";
-print "<h1>ISIP Inventory: Item Menu</h1>\n";
-print "<a href='/'>Back to List</a>";
+#print "<h1>ISIP Inventory: Item Menu</h1>\n";
 
 #my %categories;
 #my $categoryname;
@@ -149,7 +148,7 @@ print "<a href='/'>Back to List</a>";
 #my $thisfolder=$itemfolder;
 
 
-my @itemrow = $dbh->selectrow_array("SELECT item_folder,based_on_folder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,current_user,item_invoicedate,item_uniinvnum,item_category FROM items WHERE item_folder='$item_folder';");
+my @itemrow = $dbh->selectrow_array("SELECT item_folder,based_on_folder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,current_user,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber FROM items WHERE item_folder='$item_folder';");
 
 my $item_folder = @itemrow[0];
 my $item_basedon = @itemrow[1];
@@ -163,8 +162,11 @@ my $item_currentuser = @itemrow[8];
 my $item_invoicedate = @itemrow[9];
 my $item_inventorynumber = @itemrow[10];
 my $item_category = @itemrow[11];
+my $item_versionnumber = @itemrow[12];
+my $item_serialnumber = @itemrow[13];
 
-print "<h3>Item: $item_name</h3>";
+
+print "<h1>ISIP Inventory: $item_name</h1>";
 
 
 ## Anzeigen der Miniatur-Photos:
@@ -215,50 +217,75 @@ foreach my $imagefilename (@allitemsfiles)
 # Dann kommt eine HTML-Tabelle, die die ganzen Inventargegenstände dieser Kategorie
 # enthält. Erst kommen die Überschriften, ...
 print "<form action='/saveitem.pl' method='get'>\n";
+
+print "Things that don't change:";
 print "<table border=1>";
 print "<tr><th>Item Name</th><td><input type='text' name='item_name' value='$item_name'><font size='2'>(unix folder: \"$item_folder\", based on \"$item_basedon\")</font></td></tr>";
-print "<tr><th>Item Description</th><td><textarea  name='item_description' >$item_description</textarea></td></tr>";
+print "<tr><th>Version Number</th><td><input type='text' name='item_versionnumber' value='$item_versionnumber'> (e.g. Board Revision or software version or ISBN or DOI)</td></tr>";
+print "<tr><th>Serial Number</th><td><input type='text' name='item_serialnumber' value='$item_serialnumber'> (hardware serial number or software key: identifies otherwise identical objects!)</td></tr>";
+print "<tr><th>Category</th><td><select name='item_category' size='1'>";
+#print "<option value=0>Other (use location field)</option>";
+my $allroomrowsref = $dbh->selectall_arrayref("SELECT category_id,category_name FROM categories");
+	foreach my $roomrowref (@{$allroomrowsref})
+	{
+		my @roomrow = @{$roomrowref};
+
+		my $category_id = @roomrow[0];
+		my $category_name = @roomrow[1];
+
+		my $isselected = "";
+		if ($category_id eq $item_category) {$isselected = "selected";}
+		print "<option value=$category_id $isselected>$category_name</option>";
+	}
+print "</select></td></tr>";
+print "<tr><th>Item Description</th><td><textarea rows=8 cols='60'  name='item_description' >$item_description</textarea></td></tr>";
+print "<tr><th>ISIP Wiki URL (<a href='$item_wikiurl'>visit</a>)</th><td><input type='text' name='item_wikiurl' value='$item_wikiurl'> (copy&paste URL here) </td></tr>";
+print "<tr><th>Inventory Number</th><td><input type='text' name='item_inventorynumber' value='$item_inventorynumber'> (the official inventory number assigned by the university)</td></tr>";
+print "<tr><th>Invoice Date</th><td><input type='text' name='item_invoicedate' value='$item_invoicedate'> (german: Rechnungsdatum. Might be important for repairs!)</td></tr>";
+print "</table>";
+
+print "<br><br>Things that change:";
+
+print "<table border=1>";   
 print "<tr><th>Item State</th><td>";
 my $statestring = "";
 if ($item_state eq "Functional") {$statestring = "checked";}
 else {$statestring = "";}
 print "    <input type=\"radio\" name=\"item_state\" value=\"Functional\" $statestring> Functional";
+if ($item_state eq "Partly Functional") {$statestring = "checked";}                                                                                  
+else {$statestring = "";} 
 print "    <input type=\"radio\" name=\"item_state\" value=\"Partly Functional\" $statestring> Partly Functional";
+if ($item_state eq "Destroyed") {$statestring = "checked";}                                                                                  
+else {$statestring = "";} 
 print "    <input type=\"radio\" name=\"item_state\" value=\"Destroyed\" $statestring> Destroyed";
 print " </td></tr>";
-print "<tr><th>ISIP Wiki URL (<a href='$item_wikiurl'>visit</a>)</th><td><input type='text' name='item_wikiurl' value='$item_wikiurl'> (copy&paste URL here) </td></tr>";
+print "<tr><th>Location</th><td><select name='item_room' size='1'>";
+print "<option value=0>Other (use secret map field)</option>";
+my $allroomrowsref = $dbh->selectall_arrayref("SELECT room_id,room_number,room_floor,room_building,room_name FROM rooms");
+foreach my $roomrowref (@{$allroomrowsref})
+{
+	my @roomrow = @{$roomrowref};
 
-print "<tr><th>Room</th><td><select name='item_room' size='1' >";
-print "<option>Room 27: Biosignal Lab</option>";
-print "<option>Room XX: Kitchen</option>";
-print "<option>Room XX: SysAdmin Room (Thomas)</option>";
-print "<option>Room XX: Server room</option>";
-print "<option>Room XX: Student Pool</option>";
-print "<option>Room XX: Audio Lab</option>";
-print "<option>Room XX: Secretary Room (Christiane)</option>";
-print "<option>Room 25: Office of Alex, Radek, Simon, Thet</option>";
-print "<option>Room XX: Office of Alfred</option>";
-print "<option value='6'>Room XX: Office of Christian & Cristina</option>";
-print "<option value='7' selected>Room XX: Office of Uli H.</option>";
-print "<option>Room XX: Office of Chung</option>";
-print "<option>Room XX: Office of Tiemin</option>";
-print "<option>Room XX: Office of Florian</option>";
-print "<option>Room XX: Office of Heiko</option>";
-print "<option>Room XX: Office of Kunal</option>";
-print "<option>Room XX: Seminar Room</option>";
-print "<option>Room XX: Archive</option>";
-print "<option>Other</option>";
-print "</select> <b>Specific Location: </b> <input type='text' name='item_shelf' value='$item_shelf'></td></tr>";
+	my $room_id = @roomrow[0];
+	my $room_number = @roomrow[1];
+	my $room_floor = @roomrow[2];
+	my $room_building = @roomrow[3];
+	my $room_name = @roomrow[4];
 
-print "<tr><th>Current User</th><td><input type='text' name='item_currentuser' value='$item_currentuser'></td></tr>";
-print "<tr><th>Invoice Date</th><td><input type='text' name='item_invoicedate' value='$item_invoicedate'> (german: Rechnungsdatum)</td></tr>";
-print "<tr><th>University Inventory Number</th><td><input type='text' name='item_inventorynumber' value='$item_inventorynumber'> </td></tr>";
+	my $isselected = "";
+	if ($room_id eq $item_room) {$isselected = "selected";}
+	print "<option value=$room_id $isselected>$room_name ($room_building, Floor $room_floor, Room $room_number)</option>";
+}
+print "</select><br><b>Shelf, box, or secret map: </b> <input type='text' size='45' name='item_shelf' value='$item_shelf'</td></tr>";
+print "<tr><th>Current User</th><td><input size=40 type='text' name='item_currentuser' value='$item_currentuser'> (the name & email of current user)</td></tr>";
 print "</table>";
 
 print "    <input type='hidden' name='item_folder' value='$item_folder'>\n";
 print "    <input type='hidden' name='item_basedon' value='$item_basedon'>\n";
 print "    <input type='hidden' name='item_category' value='$item_category'>\n";
 print "    <br><input type='submit' value='Save!'>";
+print "<a href='/'>Back to List</a>";
+
 print "</form>";
 
 if (@otheritemfilenames)

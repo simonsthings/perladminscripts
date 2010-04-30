@@ -33,6 +33,8 @@ my $item_currentuser = "left empty";
 my $item_invoicedate = "left empty";
 my $item_inventorynumber = "left empty";
 my $item_category = "left empty";
+my $item_versionnumber = "left empty";
+my $item_serialnumber = "left empty";
 
  $item_folder 		= $cgi->param('item_folder');
  $item_basedon 		= $cgi->param('item_basedon');
@@ -46,30 +48,37 @@ my $item_category = "left empty";
  $item_invoicedate 	= $cgi->param('item_invoicedate');
  $item_inventorynumber 	= $cgi->param('item_inventorynumber');
  $item_category 	= $cgi->param('item_category');
+ $item_versionnumber	= $cgi->param('item_versionnumber');
+ $item_serialnumber 	= $cgi->param('item_serialnumber');
 
  if (!(defined $item_state)){$item_state = "Functional";}
  
 print "Content-type: text/html\n\n";
 print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
-print "<html><head><title>ISIP Inventory Webapplication</title></head><body bgcolor='#E0E0E0'>\n";
+print "<html><head><title>ISIP Inventory Webapplication</title></head>";
+print "<meta HTTP-EQUIV=\"REFRESH\" content=\"1; url=/#$item_folder\"><body bgcolor='#E0E0E0'>\n";
 print "<h1>ISIP Inventory: Saving Item!</h1>\n";
 
- print "the item_folder: $item_folder <br>\n";
-  print "the item_basedon: $item_basedon <br>\n";
- print "the item_name: $item_name <br>\n";
- print "the item_description: $item_description <br>\n";
-  print "the item_state: $item_state <br>\n";
- print "the item_wikiurl: $item_wikiurl <br>\n";
-  print "the item_room: $item_room <br>\n";
- print "the item_shelf: $item_shelf <br>\n";
- print "the item_currentuser: $item_currentuser <br>\n";
- print "the item_invoicedate: $item_invoicedate <br>\n";
- print "the item_inventorynumber: $item_inventorynumber <br>\n";
-  print "the item_category: $item_category <br>\n";
+#print "saving...<br><br>";
+
+ print "<font color='grey'>item_folder:</font> $item_folder <br>\n";
+  print "<font color='grey'> item_basedon:</font> $item_basedon <br>\n";
+ print "<font color='grey'> item_name:</font> $item_name <br>\n";
+ print "<font color='grey'> item_description:</font> $item_description <br>\n";
+  print "<font color='grey'> item_state:</font> $item_state <br>\n";
+ print "<font color='grey'> item_wikiurl:</font> $item_wikiurl <br>\n";
+  print "<font color='grey'> item_room:</font> $item_room <br>\n";
+ print "<font color='grey'> item_shelf:</font> $item_shelf <br>\n";
+ print "<font color='grey'> item_currentuser:</font> $item_currentuser <br>\n";
+ print "<font color='grey'> item_invoicedate:</font> $item_invoicedate <br>\n";
+ print "<font color='grey'> item_inventorynumber:</font> $item_inventorynumber <br>\n";
+  print "<font color='grey'> item_category:</font> $item_category <br>\n";
+  print "<font color='grey'> item_versionnumber:</font> $item_versionnumber <br>\n";
+  print "<font color='grey'> item_serialnumber:</font> $item_serialnumber <br>\n";
  
 #my $rc = $dbh->do("INSERT INTO items (item_folder,based_on_folder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,current_user,item_invoicedate,item_uniinvnum,item_category) VALUES ('$item_folder','$item_basedon','$item_name','$item_description','$item_state','$item_wikiurl','$item_room','$item_shelf','$item_currentuser','$item_invoicedate','$item_inventorynumber','$item_category') ;");
 
-my $rc = $dbh->do("UPDATE items SET based_on_folder = '$item_basedon',item_name='$item_name',item_description='$item_description',item_state='$item_state',item_wikiurl='$item_wikiurl',item_room='$item_room',item_shelf='$item_shelf',current_user='$item_currentuser',item_invoicedate='$item_invoicedate',item_uniinvnum='$item_inventorynumber',item_category='$item_category' WHERE item_folder = '$item_folder' ;");
+my $rc = $dbh->do("UPDATE items SET based_on_folder = '$item_basedon',item_name='$item_name',item_description='$item_description',item_state='$item_state',item_wikiurl='$item_wikiurl',item_room='$item_room',item_shelf='$item_shelf',current_user='$item_currentuser',item_invoicedate='$item_invoicedate',item_uniinvnum='$item_inventorynumber',item_category='$item_category',item_versionnumber='$item_versionnumber',item_serialnumber='$item_serialnumber' WHERE item_folder = '$item_folder' ;");
 
 $dbh->commit();
 
@@ -77,7 +86,7 @@ $dbh->disconnect();
 
 print "<br>saved.<br><br>";
 
-print "<a href='/itemmenu.pl?itemfolder=$item_folder'> back to item </a> <br>\n";
-print "<a href='/'> back to list </a> <br>\n";
+#print "<a href='/itemmenu.pl?itemfolder=$item_folder'> back to item </a> <br>\n";
+print "<a href='/#$item_folder'> Redirecting to Main Menu ... </a> <br>\n";
 
 print "</body></html>\n";
