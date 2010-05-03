@@ -12,7 +12,10 @@ create table items (
 	item_uniinvnum   text,
 	item_category	 integer,
 	item_versionnumber	text,
-	item_serialnumber	text
+	item_serialnumber	text,
+	item_workgroup	text,
+	item_lent_by	text,
+	item_lent_to_email	text
 );
 
 
@@ -45,6 +48,7 @@ insert into rooms (room_id,room_number,room_floor,room_building,room_name) value
 insert into rooms (room_id,room_number,room_floor,room_building,room_name) values (14,'XX','1. Stock','Haus 64','ISIP Server Room');                       
 insert into rooms (room_id,room_number,room_floor,room_building,room_name) values (15,'XX','1. Stock','Haus 64','Kitchen');                              
 insert into rooms (room_id,room_number,room_floor,room_building,room_name) values (16,'XX','Erdgeschoss','Haus 64','Leihgabe an die Robotik');                        
+insert into rooms (room_id,room_number,room_floor,room_building,room_name) values (17,'XX','Erdgeschoss','Haus 26','Leihgabe an die Neurologie');
 
 
 insert into categories (category_id,category_name) values (0,'New Items (unspecified Category)');

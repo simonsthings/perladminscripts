@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -w 
 
 use strict;
 use CGI;
@@ -24,8 +24,8 @@ print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
 print "<html><head><title>LabTracker: ISIP Inventory Webapplication</title></head><body link='#000000' vlink='#000000' alink='blue' bgcolor='#E0E0E0'>\n";
 print "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
 print "<h1>LabTracker ISIP Inventory Webapplication</h1>\n";
-print "(Mount <a href='https://inventory.isip.uni-luebeck.de/items/'>https://inventory.isip.uni-luebeck.de/items/</a> as a network drive for uploading images via WebDAV.)<br>\n";
-print "<br>\n";
+print "(<a href='http://en.wikipedia.org/wiki/WebDAV#Implementations'>Mount</a> <i><b>https://inventory.isip.uni-luebeck.de/items/</b></i> as a network drive for uploading images via the file system.)<br>\n";
+#print "<br>\n";
 
 #################
 ### Housekeeping:
@@ -79,7 +79,7 @@ if ($sth->err()) { die "$DBI::errstr\n"; }
 
 foreach my $itemfolder (@allitemfolders) 
 {
-  if ( $itemfolder !~ m/^\./ )
+  if ( ( $itemfolder !~ m/^\./ ) and ( $itemfolder !~ m/^readme.txt$/ ) )
   {
 	$sth->execute($itemfolder);
 
@@ -91,6 +91,7 @@ foreach my $itemfolder (@allitemfolders)
 	#print "$row[0], $row[2], $row[3]\n";
 	}
 
+	# check if folder is already in DB
 	if (!$existsInDB)
 	{
 	    # check if this is really a directory and if it contains valid characters: m/^\w(\w|\.)+$/
@@ -155,11 +156,11 @@ foreach my $categoryrowref (@{$categoryrowsref})
 		# enthält. Erst kommen die Überschriften, ...
 		print "<TABLE BORDER=1 rules='cols' CELLSPACING=0 CELLPADDING=0 width='100%' BORDERCOLOR='#6b7f93'>";
 		print "<TR ALIGN='middle' VALIGN='middle' bgcolor='#6b7f93' text='#ffffff' > ";
-		print "<th><font color='white'> Item Name & Version </font></th>";
+		print "<th><font color='white'> Item Name & Model </font></th>";
 		print "<th><font color='white'> Photos </font></th>";
 		print "<th><font color='white'> Location & User </font></th>";
 		print "<th><font color='white'> Serial </font></th>";
-		print "<th><font color='white'> State </font></th>";
+		print "<th><font color='white'>State</font></th>";
 		print "<th><font color='white'> Wiki-link </font></th>";
 		print "</tr>";
 		# ... dann kommen die eigentlichen Inventurgegenstände.
@@ -201,6 +202,9 @@ foreach my $categoryrowref (@{$categoryrowsref})
 			print "<a></a><td ALIGN='left'><a name='$item_folder' href='$itemfolderlink'>$item_name</a> $item_versionnumber</td>\n";
 			print "<td>\n";
 			
+		  if (-e "$itemroot/$item_folder")
+		  {
+
 			$cmd = "ls -1A $itemroot/$item_folder";
 			my @allitemsfiles = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
 			if ($?) {print '<font color="red">Careful here: Listing contents of item folder has not worked! Read the gray screen output to find out why.</font>';};
@@ -241,12 +245,26 @@ foreach my $categoryrowref (@{$categoryrowsref})
 					print "<a href='$itemfolderlink#$imagefilename'><img border=0 src='thumbs/$item_folder/$imagefilename'></a> ";
 				}
 			}
+		  }
+		  else
+		  {
+			print "<a href='repairfolder.pl?item_folder=$item_folder'><font color='red'>Alert: The photo folder of this item was not found! Was is renamed or deleted via WebDAV? Click to repair!</font></a>";
+		  }
 
 			#print "@allitemsfiles";
 			print "</td>\n";
 			print "<td>$room_name $item_shelf $item_currentuser</td>\n";
 			print "<td>$item_serialnumber</td>\n";
-			print "<td>$item_state</td>\n";
+			print "<td>";
+			if ($item_state eq "Functional")
+				{print "<img src='/style/lights_green.png' alt='$item_state'>";}
+			elsif ($item_state eq "Destroyed")
+				{print "<img src='/style/lights_red.png' alt='$item_state'>";}
+			else
+				{print "<img src='/style/lights_yellow.png' alt='$item_state'>";}
+			print "</td>\n";
+			
+			# wiki URL:
 			if (length($item_wikiurl) > 0 )
 			{
 				print "<td ALIGN='middle'><a href='$item_wikiurl'> visit</a></td>\n";

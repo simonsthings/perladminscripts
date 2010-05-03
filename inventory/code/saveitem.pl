@@ -56,25 +56,26 @@ my $item_serialnumber = "left empty";
 print "Content-type: text/html\n\n";
 print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
 print "<html><head><title>ISIP Inventory Webapplication</title></head>";
-print "<meta HTTP-EQUIV=\"REFRESH\" content=\"1; url=/#$item_folder\"><body bgcolor='#E0E0E0'>\n";
-print "<h1>ISIP Inventory: Saving Item!</h1>\n";
+print "<meta HTTP-EQUIV=\"REFRESH\" content=\"0.5; url=/#$item_folder\"><body bgcolor='#E0E0E0'>\n";
+print "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
+print "<h1>ISIP Inventory: Saving Item...</h1>\n";
 
 #print "saving...<br><br>";
 
- print "<font color='grey'>item_folder:</font> $item_folder <br>\n";
-  print "<font color='grey'> item_basedon:</font> $item_basedon <br>\n";
- print "<font color='grey'> item_name:</font> $item_name <br>\n";
- print "<font color='grey'> item_description:</font> $item_description <br>\n";
-  print "<font color='grey'> item_state:</font> $item_state <br>\n";
- print "<font color='grey'> item_wikiurl:</font> $item_wikiurl <br>\n";
-  print "<font color='grey'> item_room:</font> $item_room <br>\n";
- print "<font color='grey'> item_shelf:</font> $item_shelf <br>\n";
- print "<font color='grey'> item_currentuser:</font> $item_currentuser <br>\n";
- print "<font color='grey'> item_invoicedate:</font> $item_invoicedate <br>\n";
- print "<font color='grey'> item_inventorynumber:</font> $item_inventorynumber <br>\n";
-  print "<font color='grey'> item_category:</font> $item_category <br>\n";
-  print "<font color='grey'> item_versionnumber:</font> $item_versionnumber <br>\n";
-  print "<font color='grey'> item_serialnumber:</font> $item_serialnumber <br>\n";
+print "<font color='grey'> item_folder:</font> 	$item_folder <br>\n";
+print "<font color='grey'> item_basedon:</font> 	$item_basedon <br>\n";
+print "<font color='grey'> item_name:</font> 		$item_name <br>\n";
+print "<font color='grey'> item_description:</font> $item_description <br>\n";
+print "<font color='grey'> item_state:</font> 		$item_state <br>\n";
+print "<font color='grey'> item_wikiurl:</font> 	$item_wikiurl <br>\n";
+print "<font color='grey'> item_room:</font> 		$item_room <br>\n";
+print "<font color='grey'> item_shelf:</font> 		$item_shelf <br>\n";
+print "<font color='grey'> item_currentuser:</font> $item_currentuser <br>\n";
+print "<font color='grey'> item_invoicedate:</font> $item_invoicedate <br>\n";
+print "<font color='grey'> item_inventorynumber:</font> $item_inventorynumber <br>\n";
+print "<font color='grey'> item_category:</font> 	$item_category <br>\n";
+print "<font color='grey'> item_versionnumber:</font> $item_versionnumber <br>\n";
+print "<font color='grey'> item_serialnumber:</font> $item_serialnumber <br>\n";
  
 #my $rc = $dbh->do("INSERT INTO items (item_folder,based_on_folder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,current_user,item_invoicedate,item_uniinvnum,item_category) VALUES ('$item_folder','$item_basedon','$item_name','$item_description','$item_state','$item_wikiurl','$item_room','$item_shelf','$item_currentuser','$item_invoicedate','$item_inventorynumber','$item_category') ;");
 

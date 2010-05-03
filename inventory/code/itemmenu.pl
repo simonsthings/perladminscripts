@@ -23,6 +23,7 @@ my $cmdoutput;
 print "Content-type: text/html\n\n";
 print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
 print "<html><head><title>ISIP Inventory Webapplication</title></head><body bgcolor='#E0E0E0'>\n";
+print "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
 #print "<h1>ISIP Inventory: Item Menu</h1>\n";
 
 #my %categories;
@@ -168,63 +169,24 @@ my $item_serialnumber = @itemrow[13];
 
 print "<h1>ISIP Inventory: $item_name</h1>";
 
-
-## Anzeigen der Miniatur-Photos:
-#
-# Die HTML-Zeile soll anklickbar sein, also müssen wir den HTML-Link vorbereiten:
-#my $itemlink = "/items/$item_folder/dummy";
-my @otheritemfilenames;
-
-$cmd = "ls -1A $itemroot/$item_folder";
-my @allitemsfiles = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
-if ($?) {print '<font color="red">Careful here: It seems that the above command has not worked! Read the gray screen output to find out why.</font>';};
-# Chopping off the line breaks from all array elements (otherwise the comparison below will not work):
-chomp(@allitemsfiles);
-
-foreach my $imagefilename (@allitemsfiles)
-{
-	if ((substr($imagefilename, -4) eq (".jpg")) or (substr($imagefilename, -4) eq (".png")) or (substr($imagefilename, -4) eq (".gif")))
-	{
-		my $thumbnailfile = "$itemroot/../thumbs/$item_folder/$imagefilename";
-
-		# generate thumbnail if it does not exist yet
-		if (!(-e $thumbnailfile))
-		{
-			`mkdir $itemroot/../thumbs/$item_folder`;
-			$cmd = "convert $itemroot/$item_folder/$imagefilename -resize x30 $thumbnailfile";
-			my @outputlines = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
-
-			if ($?) {print "<pre>@outputlines</pre> <br>\n";print '<font color="red">Careful here: It seems that the above command has not worked! Read the gray screen output to find out why.</font>';};
-		}
-		else
-		{
-			#print "thumbnail of $imagefilename already there.<br>\n"
-		}
-
-		# link to thumb				
-		print "<a href='items/$item_folder/$imagefilename'><img border=0 src='thumbs/$item_folder/$imagefilename'></a> ";
-	}
-	else
-	{
-		push (@otheritemfilenames, $imagefilename);
-		#print "Other file: $imagefilename ";
-	}
-}
-## Ende der photos
-
-
-
+my $fieldhelpfontsize = 1;
 # Dann kommt eine HTML-Tabelle, die die ganzen Inventargegenstände dieser Kategorie
 # enthält. Erst kommen die Überschriften, ...
 print "<form action='/saveitem.pl' method='get'>\n";
 
+# Save button:
+print "    <input type='submit' value='Save!'>";
+print "	<a href='/#$item_folder'>Cancel</a>";
+print "<br><br>";
+
 print "Things that don't change:";
-print "<table border=1>";
-print "<tr><th>Item Name</th><td><input type='text' name='item_name' value='$item_name'><font size='2'>(unix folder: \"$item_folder\", based on \"$item_basedon\")</font></td></tr>";
-print "<tr><th>Version Number</th><td><input type='text' name='item_versionnumber' value='$item_versionnumber'> (e.g. Board Revision or software version or ISBN or DOI)</td></tr>";
-print "<tr><th>Serial Number</th><td><input type='text' name='item_serialnumber' value='$item_serialnumber'> (hardware serial number or software key: identifies otherwise identical objects!)</td></tr>";
-print "<tr><th>Category</th><td><select name='item_category' size='1'>";
-#print "<option value=0>Other (use location field)</option>";
+print "<TABLE BORDER=1 rules='rows' CELLSPACING=0 CELLPADDING=0 width='100%' BORDERCOLOR='darkgrey'>";
+
+print "<tr><th bgcolor='#6b7f93'><font color='white'>Item Name</font></th><td bgcolor='white'><input type='text' name='item_name' value='$item_name'><font size='$fieldhelpfontsize'>(unix folder: \"$item_folder\", based on \"$item_basedon\")</font></td></tr>";
+print "<tr><th bgcolor='#6b7f93'><font color='white'>Version / Model</font></th><td bgcolor='white'><input type='text' name='item_versionnumber' value='$item_versionnumber'><font size='$fieldhelpfontsize'> (e.g. Board Revision or software version or ISBN or DOI)</font></td></tr>";
+
+print "<tr><th bgcolor='#6b7f93'><font color='white'>Serial Number</font></th><td bgcolor='white'><input type='text' name='item_serialnumber' value='$item_serialnumber'><font size='$fieldhelpfontsize'> (hardware serial number or software key: identifies otherwise identical objects!)</font></td></tr>";
+print "<tr><th bgcolor='#6b7f93'><font color='white'>Category</font></th><td bgcolor='white'><select name='item_category' size='1'>";
 my $allroomrowsref = $dbh->selectall_arrayref("SELECT category_id,category_name FROM categories");
 	foreach my $roomrowref (@{$allroomrowsref})
 	{
@@ -238,16 +200,17 @@ my $allroomrowsref = $dbh->selectall_arrayref("SELECT category_id,category_name 
 		print "<option value=$category_id $isselected>$category_name</option>";
 	}
 print "</select></td></tr>";
-print "<tr><th>Item Description</th><td><textarea rows=8 cols='60'  name='item_description' >$item_description</textarea></td></tr>";
-print "<tr><th>ISIP Wiki URL (<a href='$item_wikiurl'>visit</a>)</th><td><input type='text' name='item_wikiurl' value='$item_wikiurl'> (copy&paste URL here) </td></tr>";
-print "<tr><th>Inventory Number</th><td><input type='text' name='item_inventorynumber' value='$item_inventorynumber'> (the official inventory number assigned by the university)</td></tr>";
-print "<tr><th>Invoice Date</th><td><input type='text' name='item_invoicedate' value='$item_invoicedate'> (german: Rechnungsdatum. Might be important for repairs!)</td></tr>";
+print "<tr><th width=200 bgcolor='#6b7f93'><font color='white'>Item Description</font></th><td bgcolor='white'><textarea rows=8 cols='60'  name='item_description' >$item_description</textarea></td></tr>";
+print "<tr><th bgcolor='#6b7f93'><font color='white'>ISIP Wiki URL (<a href='$item_wikiurl'>visit</a>)</font></th><td bgcolor='white'><input type='text' name='item_wikiurl' value='$item_wikiurl'><font size='$fieldhelpfontsize'> (copy&paste URL here) </font></td></tr>";
+print "<tr><th bgcolor='#6b7f93'><font color='white'>Inventory Number</font></th><td bgcolor='white'><input type='text' name='item_inventorynumber' value='$item_inventorynumber'><font size='$fieldhelpfontsize'> (the official inventory number assigned by the university) </font></td></tr>";
+print "<tr><th bgcolor='#6b7f93'><font color='white'>Invoice Date</font></th><td bgcolor='white'><input type='text' name='item_invoicedate' value='$item_invoicedate'><font size='$fieldhelpfontsize'> (german: Rechnungsdatum. Might be important for repairs!) </font></td></tr>";
 print "</table>";
 
-print "<br><br>Things that change:";
+print "<br>Things that change:";
 
-print "<table border=1>";   
-print "<tr><th>Item State</th><td>";
+print "<TABLE BORDER=1 rules='rows' CELLSPACING=0 CELLPADDING=0 width='100%' BORDERCOLOR='darkgrey'>";
+# item state:
+print "<tr><th width=200 bgcolor='#6b7f93'><font color='white'>Item State</font></th><td bgcolor='white'>";
 my $statestring = "";
 if ($item_state eq "Functional") {$statestring = "checked";}
 else {$statestring = "";}
@@ -259,7 +222,8 @@ if ($item_state eq "Destroyed") {$statestring = "checked";}
 else {$statestring = "";} 
 print "    <input type=\"radio\" name=\"item_state\" value=\"Destroyed\" $statestring> Destroyed";
 print " </td></tr>";
-print "<tr><th>Location</th><td><select name='item_room' size='1'>";
+# item location:
+print "<tr><th bgcolor='#6b7f93'><font color='white'>Location</font></th><td bgcolor='white'><select name='item_room' size='1'>";
 print "<option value=0>Other (use secret map field)</option>";
 my $allroomrowsref = $dbh->selectall_arrayref("SELECT room_id,room_number,room_floor,room_building,room_name FROM rooms");
 foreach my $roomrowref (@{$allroomrowsref})
@@ -276,26 +240,108 @@ foreach my $roomrowref (@{$allroomrowsref})
 	if ($room_id eq $item_room) {$isselected = "selected";}
 	print "<option value=$room_id $isselected>$room_name ($room_building, Floor $room_floor, Room $room_number)</option>";
 }
-print "</select><br><b>Shelf, box, or secret map: </b> <input type='text' size='45' name='item_shelf' value='$item_shelf'</td></tr>";
-print "<tr><th>Current User</th><td><input size=40 type='text' name='item_currentuser' value='$item_currentuser'> (the name & email of current user)</td></tr>";
+print "</select><br><input type='text' size='45' name='item_shelf' value='$item_shelf'><font size='$fieldhelpfontsize'> (shelf, box, or secret map) </font></td></tr>";
+# item user:
+print "<tr><th bgcolor='#6b7f93'><font color='white'>Current User</font></th><td bgcolor='white'><input size=40 type='text' name='item_currentuser' value='$item_currentuser'><font size='$fieldhelpfontsize'> (the name & email of current user) </font></td></tr>";
 print "</table>";
 
 print "    <input type='hidden' name='item_folder' value='$item_folder'>\n";
 print "    <input type='hidden' name='item_basedon' value='$item_basedon'>\n";
-print "    <input type='hidden' name='item_category' value='$item_category'>\n";
-print "    <br><input type='submit' value='Save!'>";
-print "<a href='/'>Back to List</a>";
+#print "    <input type='hidden' name='item_category' value='$item_category'>\n";
 
-print "</form>";
+
+
+## Anzeigen der Miniatur-Photos:
+#
+# Die HTML-Zeile soll anklickbar sein, also müssen wir den HTML-Link vorbereiten:
+
+print "<br><u>Photos (click them!):</u><br>";
+
+my $thumbnailresolution = 48;
+my @otheritemfilenames;
+
+		  if (-e "$itemroot/$item_folder")
+		  {
+
+			$cmd = "ls -1A $itemroot/$item_folder";
+			my @allitemsfiles = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
+			if ($?) {print '<font color="red">Careful here: Listing contents of item folder has not worked! Read the gray screen output to find out why.</font>';};
+			# Chopping off the line breaks from all array elements (otherwise the comparison below will not work):
+			chomp(@allitemsfiles);
+
+			foreach my $imagefilename (@allitemsfiles)
+			{
+				# for each file that starts with a letter and ends with .jpg, .png or .gif
+				if ( ((substr($imagefilename, -4) eq (".jpg")) or (substr($imagefilename, -4) eq (".png")) or (substr($imagefilename, -4) eq (".gif")))
+					and ($imagefilename =~ m/^\w(\w|\.)+$/) )
+				{
+					my $thumbnailfile = "$itemroot/../thumbs/$item_folder/$imagefilename";
+
+					#create thumbnail folder if it does not exist yet:
+					if (!(-e "$itemroot/../thumbs/$item_folder/."))
+					{
+						$cmd = "mkdir -p \"$itemroot/../thumbs/$item_folder\"";
+						my @mkdirerror = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
+						if ($?) {print "<pre>@mkdirerror</pre> <br>\n";print '<font color="red">Careful here: Creating the thumbnail folder for $imagefilename has not worked! Read the gray screen output to find out why.</font>';};
+					}
+
+					# generate thumbnail if it does not exist yet
+					if (!(-e $thumbnailfile))
+					{
+						#`"mkdir \"$itemroot/../thumbs/$item_folder\""`;
+						$cmd = "convert \"$itemroot/$item_folder/$imagefilename\" -resize x$thumbnailresolution \"$thumbnailfile\"";
+						my @outputlines = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
+						
+						if ($?) {print "<pre>@outputlines</pre> <br>\n";print '<font color="red">Careful here: Converting the image has not worked! Read the gray screen output to find out why.</font>';};
+					}
+					else
+					{
+						#print "thumbnail of $imagefilename already there.<br>\n"
+					}
+					
+					# link to thumb				
+					print "<a href='items/$item_folder/$imagefilename'><img border=0 src='thumbs/$item_folder/$imagefilename'></a> ";
+				}
+				else
+				{
+					push (@otheritemfilenames, $imagefilename);
+					#print "Other file: $imagefilename ";
+				}
+			}
+		  }
+		  else
+		  {
+			print "<font color='red'>Alert: The photo folder of this item was not found! Was is renamed or deleted via WebDAV? Click to repair!</font>";
+		  }
+
+
+
+
+
+
+## Ende der photos
+
+print "<br><br><u>Other files:</u><br>";
 
 if (@otheritemfilenames)
 {
-	print "<h3>Other files:</h3>";
+#	print "<h3>Other files:</h3>";
 	foreach my $otherfilename (@otheritemfilenames)
 	{
 		print "$otherfilename<br>\n";
 	}
 }
+else
+{
+	print "<font color='grey'>none.</font><br>";
+}
+
+
+# Save button:
+print "    <br><input type='submit' value='Save!'>";
+print "	<a href='/#$item_folder'>Cancel</a>";
+# End of form
+print "</form>";
 
 print "</body></html>\n";
 

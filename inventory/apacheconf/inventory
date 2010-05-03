@@ -1,0 +1,179 @@
+<VirtualHost *:80>
+	ServerName inventory
+	Redirect / https://inventory.isip.uni-luebeck.de/
+</VirtualHost>
+
+<VirtualHost *:80>
+	ServerName inventar
+	Redirect / https://inventory.isip.uni-luebeck.de/
+</VirtualHost>
+
+<VirtualHost *:80>
+	ServerName inventur
+	Redirect / https://inventory.isip.uni-luebeck.de/
+</VirtualHost>
+
+<VirtualHost *:80>
+	ServerName kram
+	Redirect / https://inventory.isip.uni-luebeck.de/
+</VirtualHost>
+
+<VirtualHost *:80>
+	ServerName stuff
+	Redirect / https://inventory.isip.uni-luebeck.de/
+</VirtualHost>
+
+<VirtualHost *:80>
+        ServerName inventory.isip.uni-luebeck.de
+        Redirect / https://inventory.isip.uni-luebeck.de/
+</VirtualHost>
+
+<VirtualHost *:80>
+        ServerName inventar.isip.uni-luebeck.de
+        Redirect / https://inventory.isip.uni-luebeck.de/
+</VirtualHost>
+
+<VirtualHost *:80>
+        ServerName inventur.isip.uni-luebeck.de
+        Redirect / https://inventory.isip.uni-luebeck.de/
+</VirtualHost>
+
+<VirtualHost *:80>
+        ServerName kram.isip.uni-luebeck.de
+        Redirect / https://inventory.isip.uni-luebeck.de/
+</VirtualHost>
+
+<VirtualHost *:80>
+        ServerName stuff.isip.uni-luebeck.de
+        Redirect / https://inventory.isip.uni-luebeck.de/
+</VirtualHost>
+
+
+<VirtualHost *:443>
+	ServerAdmin isip_sysadm@isip.uni-luebeck.de
+	ServerName inventory.isip.uni-luebeck.de
+	DocumentRoot /var/www/inventory
+
+        SSLEngine On
+        SSLCertificateFile /etc/apache2/ssl/apache.pem
+
+	<Location />
+            AuthType Basic                                                                                                                                           
+	    AuthName "The ISIP Inventory List: Please enter your ISIP LDAP password"                                                                                     
+            AuthLDAPEnabled on                                                                                                                                       
+            AuthLDAPAuthoritative on                                                                                                                                 
+            AuthLDAPURL ldaps://shannon/dc=isip,dc=uni-luebeck,dc=de?uid                                                                                             
+            Require valid-user                                                                                                                                       
+	</Location>
+									
+
+
+	Alias /thumbs /var/www/inventory/thumbs
+	Alias /style /var/www/inventory/style
+
+	# Verzeichnis freigeben
+	# außerhalb des DocumentRoot
+	Alias /items /var/www/inventory/items
+	#Alias /images /var/www/inventory/items
+	# Diese Verzeichnisfreigabe konfigurieren
+	<Location /items>
+		# WebDAV einschalten
+		Dav on
+
+		# Alle Dateien als Plain Text zurückgegeben,
+		# auch Skripte
+		ForceType text/plain
+
+		# Benutzerauthentifizierung
+		#AuthType Basic
+		#AuthName "Mein WebDAV"
+		#AuthUserFile /etc/apache2/htpasswd 
+		#AuthGroupFile /etc/apache2/htgroup
+
+		# Alle definierten User dürfen zugreifen
+		#Require valid-user
+
+		# Keine .htaccess-Dateien erlauben
+		AllowOverride None
+
+		# Auflisten des Verzeichnisinhaltes erlauben 
+		Options None
+
+		DirectoryIndex /style/itemfolderinfo.html
+
+		# Zugriff nur über SSL (verschlüsselt)
+		#SSLRequireSSL
+	</Location>
+ 
+	<Location /style>
+		# Alle Dateien als Plain Text zurückgegeben,
+		# auch Skripte
+		#ForceType text/plain
+
+		# Benutzerauthentifizierung
+        	AuthType Basic                                                                                                                                           
+	        AuthName "The ISIP Inventory List: Please enter your ISIP LDAP password"                                                                                     
+    		AuthLDAPEnabled on                                                                                                                                       
+	        AuthLDAPAuthoritative on                                                                                                                                 
+                AuthLDAPURL ldaps://shannon/dc=isip,dc=uni-luebeck,dc=de?uid                                                                                             
+	    
+		# Alle definierten User dürfen zugreifen
+		Require valid-user
+
+		# Keine .htaccess-Dateien erlauben
+		AllowOverride None
+
+		# Auflisten des Verzeichnisinhaltes erlauben 
+		Options None
+
+		# Zugriff nur über SSL (verschlüsselt)
+		#SSLRequireSSL
+	</Location>
+	
+	<Location /thumbs>
+		# Alle Dateien als Plain Text zurückgegeben,
+		# auch Skripte
+		#ForceType text/plain
+
+		# Benutzerauthentifizierung
+        	AuthType Basic                                                                                                                                           
+	        AuthName "The ISIP Inventory List: Please enter your ISIP LDAP password"                                                                                     
+    		AuthLDAPEnabled on                                                                                                                                       
+	        AuthLDAPAuthoritative on                                                                                                                                 
+                AuthLDAPURL ldaps://shannon/dc=isip,dc=uni-luebeck,dc=de?uid                                                                                             
+	    
+		# Alle definierten User dürfen zugreifen
+		Require valid-user
+
+		# Keine .htaccess-Dateien erlauben
+		AllowOverride None
+
+		# Auflisten des Verzeichnisinhaltes erlauben 
+		Options None
+
+		# Zugriff nur über SSL (verschlüsselt)
+		#SSLRequireSSL
+	</Location>
+	
+	#------- Allow CGI scripts for creating new repositories and such ----------
+	ScriptAlias /itemmenu.pl /var/www/inventory/code/itemmenu.pl
+	ScriptAlias /saveitem.pl /var/www/inventory/code/saveitem.pl
+	ScriptAlias /repairfolder.pl /var/www/inventory/code/repairfolder.pl
+	ScriptAlias /newitem.pl /var/www/inventory/code/newitem.pl
+	ScriptAlias /renamefolder.pl /var/www/inventory/code/renamefolder.pl
+	ScriptAlias / /var/www/inventory/code/mainmenu.pl
+	
+	#-------------------------End of CGI activation ----------------------------
+	
+	
+	
+	
+	ErrorLog /var/log/apache2/error.log
+	# Possible values include: debug, info, notice, warn, error, crit,
+	# alert, emerg.
+	LogLevel warn
+
+	CustomLog /var/log/apache2/access.log combined
+	ServerSignature On
+
+</VirtualHost>
