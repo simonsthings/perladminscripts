@@ -13,9 +13,10 @@ create table items (
 	item_category	 integer,
 	item_versionnumber	text,
 	item_serialnumber	text,
-	item_workgroup	text,
-	item_lent_by	text,
-	item_lent_to_email	text
+	item_workgroup		text,
+	item_lent_by		text,
+	item_lent_to_email	text,
+	item_uniqueID		integer primary key autoincrement
 );
 
 
@@ -33,6 +34,7 @@ create table categories (
 );
 
 create table history (
+	history_itemuniqueid	integer,
 	history_operation	text,
         history_folder      	text,
 	history_linkedfolder 	text,
