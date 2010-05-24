@@ -74,7 +74,7 @@
 	# Verzeichnis freigeben
 	# außerhalb des DocumentRoot
 	Alias /items /var/www/inventory/items
-	#Alias /images /var/www/inventory/items
+	Alias /images /var/www/inventory/items
 	# Diese Verzeichnisfreigabe konfigurieren
 	<Location /items>
 		# WebDAV einschalten
@@ -155,12 +155,37 @@
 		#SSLRequireSSL
 	</Location>
 	
+	<Location /images>
+		# Alle Dateien als Plain Text zurückgegeben,
+		# auch Skripte
+		#ForceType text/plain
+
+		# Benutzerauthentifizierung
+        	AuthType Basic                                                                                                                                           
+	        AuthName "The ISIP Inventory List: Please enter your ISIP LDAP password"                                                                                     
+    		AuthLDAPEnabled on                                                                                                                                       
+	        AuthLDAPAuthoritative on                                                                                                                                 
+                AuthLDAPURL ldaps://shannon/dc=isip,dc=uni-luebeck,dc=de?uid                                                                                             
+	    
+		# Alle definierten User dürfen zugreifen
+		Require valid-user
+
+		# Keine .htaccess-Dateien erlauben
+		AllowOverride None
+
+		# Auflisten des Verzeichnisinhaltes erlauben 
+		Options None
+
+		# Zugriff nur über SSL (verschlüsselt)
+		#SSLRequireSSL
+	</Location>
+	
 	#------- Allow CGI scripts for creating new repositories and such ----------
 	ScriptAlias /itemmenu.pl /var/www/inventory/code/itemmenu.pl
 	ScriptAlias /saveitem.pl /var/www/inventory/code/saveitem.pl
 	ScriptAlias /repairfolder.pl /var/www/inventory/code/repairfolder.pl
-	ScriptAlias /newitem.pl /var/www/inventory/code/newitem.pl
-	ScriptAlias /renamefolder.pl /var/www/inventory/code/renamefolder.pl
+	ScriptAlias /folderoperations.pl /var/www/inventory/code/folderoperations.pl
+	ScriptAlias /createitem.pl /var/www/inventory/code/createitem.pl
 	ScriptAlias / /var/www/inventory/code/mainmenu.pl
 	
 	#-------------------------End of CGI activation ----------------------------

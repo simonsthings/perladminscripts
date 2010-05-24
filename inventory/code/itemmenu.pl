@@ -149,7 +149,7 @@ print "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
 #my $thisfolder=$itemfolder;
 
 
-my @itemrow = $dbh->selectrow_array("SELECT item_folder,based_on_folder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,current_user,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber FROM items WHERE item_folder='$item_folder';");
+my @itemrow = $dbh->selectrow_array("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber,item_workgroup,item_lent_by,item_lent_to_email  FROM items WHERE item_folder='$item_folder';");
 
 my $item_folder = @itemrow[0];
 my $item_basedon = @itemrow[1];
@@ -165,6 +165,9 @@ my $item_inventorynumber = @itemrow[10];
 my $item_category = @itemrow[11];
 my $item_versionnumber = @itemrow[12];
 my $item_serialnumber = @itemrow[13];
+my $item_workgroup = @itemrow[14];
+my $item_lentby = @itemrow[15];
+my $item_lentToEmail = @itemrow[16];
 
 
 print "<h1>ISIP Inventory: $item_name</h1>";
@@ -175,14 +178,18 @@ my $fieldhelpfontsize = 1;
 print "<form action='/saveitem.pl' method='get'>\n";
 
 # Save button:
-print "    <input type='submit' value='Save!'>";
-print "	<a href='/#$item_folder'>Cancel</a>";
+print "    <input type='submit' value='Save'>";
+print "	<input type='button' value='Cancel' onclick='document.location.href=\"/#$item_folder\"'>";
 print "<br><br>";
 
 print "Things that don't change:";
 print "<TABLE BORDER=1 rules='rows' CELLSPACING=0 CELLPADDING=0 width='100%' BORDERCOLOR='darkgrey'>";
 
-print "<tr><th bgcolor='#6b7f93'><font color='white'>Item Name</font></th><td bgcolor='white'><input type='text' name='item_name' value='$item_name'><font size='$fieldhelpfontsize'>(unix folder: \"$item_folder\", based on \"$item_basedon\")</font></td></tr>";
+print "<tr><th bgcolor='#6b7f93'><font color='white'>Item Name</font></th><td bgcolor='white'><input type='text' name='item_name' value='$item_name'><font size='$fieldhelpfontsize'>(unix folder: \"$item_folder\", based on \"$item_basedon\")</font> ";
+print "<input type='button' value='Rename unix folder' onclick='document.location.href=\"/style/notimplemented.html\"'>";
+print "<input type='button' value='Change linked folder' onclick='document.location.href=\"/style/notimplemented.html\"' disabled> ";
+print "</td></tr>";
+
 print "<tr><th bgcolor='#6b7f93'><font color='white'>Version / Model</font></th><td bgcolor='white'><input type='text' name='item_versionnumber' value='$item_versionnumber'><font size='$fieldhelpfontsize'> (e.g. Board Revision or software version or ISBN or DOI)</font></td></tr>";
 
 print "<tr><th bgcolor='#6b7f93'><font color='white'>Serial Number</font></th><td bgcolor='white'><input type='text' name='item_serialnumber' value='$item_serialnumber'><font size='$fieldhelpfontsize'> (hardware serial number or software key: identifies otherwise identical objects!)</font></td></tr>";
@@ -300,7 +307,7 @@ my @otheritemfilenames;
 					}
 					
 					# link to thumb				
-					print "<a href='items/$item_folder/$imagefilename'><img border=0 src='thumbs/$item_folder/$imagefilename'></a> ";
+					print "<a href='images/$item_folder/$imagefilename'><img border=0 src='thumbs/$item_folder/$imagefilename'></a> ";
 				}
 				else
 				{
@@ -328,7 +335,7 @@ if (@otheritemfilenames)
 #	print "<h3>Other files:</h3>";
 	foreach my $otherfilename (@otheritemfilenames)
 	{
-		print "$otherfilename<br>\n";
+		print "<a href='items/$item_folder/$otherfilename'><font color='grey'>$otherfilename</font></a><br>\n";
 	}
 }
 else
@@ -338,10 +345,14 @@ else
 
 
 # Save button:
-print "    <br><input type='submit' value='Save!'>";
-print "	<a href='/#$item_folder'>Cancel</a>";
+print "    <br><input type='submit' value='Save'>";
+print "	<input type='button' value='Cancel' onclick='document.location.href=\"/#$item_folder\"'>";
 # End of form
 print "</form>";
+
+print "<br>\n";
+print "<br>\n";
+print "<input type='button' value='Delete this item...' onclick='document.location.href=\"/style/notimplemented.html\"'>";
 
 print "</body></html>\n";
 

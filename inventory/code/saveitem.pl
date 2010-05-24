@@ -79,7 +79,7 @@ print "<font color='grey'> item_serialnumber:</font> $item_serialnumber <br>\n";
  
 #my $rc = $dbh->do("INSERT INTO items (item_folder,based_on_folder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,current_user,item_invoicedate,item_uniinvnum,item_category) VALUES ('$item_folder','$item_basedon','$item_name','$item_description','$item_state','$item_wikiurl','$item_room','$item_shelf','$item_currentuser','$item_invoicedate','$item_inventorynumber','$item_category') ;");
 
-my $rc = $dbh->do("UPDATE items SET based_on_folder = '$item_basedon',item_name='$item_name',item_description='$item_description',item_state='$item_state',item_wikiurl='$item_wikiurl',item_room='$item_room',item_shelf='$item_shelf',current_user='$item_currentuser',item_invoicedate='$item_invoicedate',item_uniinvnum='$item_inventorynumber',item_category='$item_category',item_versionnumber='$item_versionnumber',item_serialnumber='$item_serialnumber' WHERE item_folder = '$item_folder' ;");
+my $rc = $dbh->do("UPDATE items SET item_linkedfolder = '$item_basedon',item_name='$item_name',item_description='$item_description',item_state='$item_state',item_wikiurl='$item_wikiurl',item_room='$item_room',item_shelf='$item_shelf',item_currentuser='$item_currentuser',item_invoicedate='$item_invoicedate',item_uniinvnum='$item_inventorynumber',item_category='$item_category',item_versionnumber='$item_versionnumber',item_serialnumber='$item_serialnumber' WHERE item_folder = '$item_folder' ;");
 
 $dbh->commit();
 

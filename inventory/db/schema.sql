@@ -1,13 +1,13 @@
 create table items (
         item_folder      text,
-	based_on_folder  text,
+	item_linkedfolder  text,
         item_name        text,
         item_description text,
 	item_state       text,
 	item_wikiurl     text,
         item_room        integer,
 	item_shelf	 text,
-	current_user	 text,
+	item_currentuser text,
 	item_invoicedate text,
 	item_uniinvnum   text,
 	item_category	 integer,
@@ -30,6 +30,27 @@ create table rooms (
 create table categories (
 	category_id	integer,
 	category_name	text
+);
+
+create table history (
+	history_deleted		text,
+        history_folder      	text,
+	history_linkedfolder 	text,
+        history_name        	text,
+        history_description 	text,
+	history_state       	text,
+	history_wikiurl     	text,
+        history_room        	integer,
+	history_shelf	 	text,
+	history_currentuser	text,
+	history_invoicedate 	text,
+	history_uniinvnum   	text,
+	history_category	integer,
+	history_versionnumber	text,
+	history_serialnumber	text,
+	history_workgroup	text,
+	history_lent_by		text,
+	history_lent_to_email	text
 );
 
 insert into rooms (room_id,room_number,room_floor,room_building,room_name) values (1,'27','1. Stock','Haus 64','Biosignal Lab');                        

@@ -126,6 +126,7 @@ foreach my $itemfolder (@allitemfolders)
   }
 }
 
+
 ###################################
 ### Output list of inventory items:
 ###################################
@@ -144,7 +145,7 @@ foreach my $categoryrowref (@{$categoryrowsref})
 	my $category_name = @categoryrow[1];
 
 	# Get all items for current category (the ending "ref" stands for "reference", so think pointers!):
-	my $allitemrowsref = $dbh->selectall_arrayref("SELECT item_folder,based_on_folder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,current_user,item_invoicedate,item_uniinvnum,item_category , rooms.room_id, rooms.room_number, rooms.room_floor, rooms.room_building, rooms.room_name, item_versionnumber, item_serialnumber FROM items LEFT JOIN rooms ON items.item_room=rooms.room_id WHERE item_category='$category_id';");
+	my $allitemrowsref = $dbh->selectall_arrayref("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category , rooms.room_id, rooms.room_number, rooms.room_floor, rooms.room_building, rooms.room_name, item_versionnumber, item_serialnumber FROM items LEFT JOIN rooms ON items.item_room=rooms.room_id WHERE item_category='$category_id';");
 	
 	my $itemcount = scalar(@{$allitemrowsref});
 	if ($itemcount > 0)
@@ -199,7 +200,7 @@ foreach my $categoryrowref (@{$categoryrowsref})
 			# Hier wird dann die eigentliche Zeile der HTML-Tabelle ausgegeben:
 			print "<TR ALIGN='middle' VALIGN='middle' bgcolor='$tablerowbgcolor'>\n";
 
-			print "<a></a><td ALIGN='left'><a name='$item_folder' href='$itemfolderlink'>$item_name</a> $item_versionnumber</td>\n";
+			print "<a></a><td ALIGN='left'>&nbsp;<a name='$item_folder' href='$itemfolderlink'>$item_name</a> $item_versionnumber</td>\n";
 			print "<td>\n";
 			
 		  if (-e "$itemroot/$item_folder")
@@ -291,6 +292,18 @@ foreach my $categoryrowref (@{$categoryrowsref})
 
 # Die Datenbank wird ab jetzt nicht mehr gebraucht. Also wird sie geschlossen:
 $dbh->disconnect();
+
+
+
+########################
+### New Item Button
+########################
+print "<br>";
+print "<input type='button' value='Create New Item' onclick='document.location.href=\"createitem.pl\"'>";
+print " ... or you can make a new folder in the shared file system if you have mounted the network drive! See above.";
+print "<br>";
+
+
 
 print "<br>";
 print "<a href='/?thumbnailresolution=30' method=\"post\"> Rebuild thumbnails at 30 pixels </a> <br>\n";
