@@ -33,7 +33,7 @@ create table categories (
 );
 
 create table history (
-	history_deleted		text,
+	history_operation	text,
         history_folder      	text,
 	history_linkedfolder 	text,
         history_name        	text,
