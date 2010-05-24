@@ -154,8 +154,9 @@ elsif ($itemaction eq "create")
     }
     elsif ($createaction eq "C")
     {
-	$actionC_folder =~ m/^(\D*)(\d*)$/;
+	$actionC_folder =~ m/^(\w*\D)(\d*)$/;
 	my $folderbase = $1 ;
+	if ($folderbase eq "") {$folderbase = "item";} # if the matching totally fails.
 	#print "bla = $folderbase"; 
 	$item_folder = findNextFoldername("$folderbase");
         print "<h3>I want to make a  copy of the item \"$actionC_folder\"!</h3>\n";                                                                                                                                                                                    
