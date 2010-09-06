@@ -48,6 +48,76 @@ print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
 print "<html><head><title>ISIP Inventory Webapplication</title></head><body bgcolor='#E0E0E0'>\n";
 print "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
 
+
+sub saveHistory
+{
+    my ($item_folder,$operation_string) = @_;
+    
+    my @itemrow = $dbh->selectrow_array("SELECT 
+    item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber,item_workgroup,item_responsibleperson,item_uniqueID,
+    room_id,room_number,room_floor,room_building,room_name,
+    category_id,category_name
+    FROM items LEFT JOIN rooms ON items.item_room=rooms.room_id LEFT JOIN categories ON items.item_category=categories.category_id 
+    WHERE items.item_folder='$item_folder';");
+    my $item_folderDB = @itemrow[0];
+    my $item_linkedfolder = @itemrow[1];
+    my $item_name = @itemrow[2];
+    my $item_description = @itemrow[3];
+    my $item_state = @itemrow[4];
+    my $item_wikiurl = @itemrow[5];
+    my $item_room = @itemrow[6];
+    my $item_shelf = @itemrow[7];
+    my $item_currentuser = @itemrow[8];
+    my $item_invoicedate = @itemrow[9];
+    my $item_inventorynumber = @itemrow[10];
+    my $item_category = @itemrow[11];
+    my $item_versionnumber = @itemrow[12];
+    my $item_serialnumber = @itemrow[13];
+    my $item_workgroup = @itemrow[14];
+    my $item_responsibleperson = @itemrow[15];
+    my $item_uniqueID = @itemrow[16];
+    my $room_id = @itemrow[17];
+    my $room_number = @itemrow[18];
+    my $room_floor = @itemrow[19];
+    my $room_building = @itemrow[20];
+    my $room_name = @itemrow[21];
+    my $category_id = @itemrow[22];
+    my $category_name = @itemrow[23];
+    
+#    my $roomString = "Unspecified";
+#    if ($item_room != 0)
+#    {
+#	$roomString = $room_name;
+#    }    
+#    my $categoryString;
+
+    my $time = time();
+    my $ar =  $dbh->do("INSERT INTO history (history_itemuniqueid,history_operation,history_operationtime,history_xmlblob) 
+	VALUES ($item_uniqueID,$operation_string,$time,'
+	<td title=\"Room\">$room_name</td>
+	<td title=\"Shelf\">$item_shelf</td>
+	<td title=\"State\">$item_state</td>
+	<td title=\"Current User\">$item_currentuser</td>
+	<td title=\"Responsible Person\">$item_responsibleperson</td>
+	<td title=\"-\"> </td>
+	<td title=\"Item Name\">$item_name</td>
+	<td title=\"Unix Folder\">$item_folder</td>
+	<td title=\"Description\">$item_description</td>
+	<td title=\"LinkedFolder\">$item_linkedfolder</td>
+	<td title=\"Wiki URL\">$item_wikiurl</td>
+	<td title=\"Invoice Date\">$item_invoicedate</td>
+	<td title=\"University Inventory #\">$item_inventorynumber</td>
+	<td title=\"Serial Number\">$item_serialnumber</td>
+	<td title=\"Version\">$item_versionnumber</td>
+	<td title=\"Workgroup\">$item_workgroup</td>
+	<td title=\"Category\">$category_name</td>
+	<td title=\"Room ID\">$item_room</td>
+	<td title=\"Category ID\">$item_category</td>
+	')"); 
+
+	$dbh->commit();
+}
+
 if ($itemaction eq "repair")
 {
 
@@ -58,15 +128,20 @@ if ($itemaction eq "repair")
     	print "<h3>I renamed it to \"$actionA_folder\" and want to delete the existing item for that folder!</h3>\n";
     	print "Deleting existing database entry for folder \"$actionA_folder\" and changing item $item_name from folder \"$item_folder\" to \"$actionA_folder\"...";
 
+	# Save history before deletion (if we weren't deleting, we would be saving AFTER edit):
+	saveHistory($actionA_folder,'DELETED_REPAIROTHER');
+	
     	$dbh->do("DELETE FROM items WHERE item_folder='$actionA_folder';");
 	$dbh->do("UPDATE items SET item_folder = '$actionA_folder' WHERE item_folder = '$item_folder' ;");
-	$dbh->commit();
-
+	#$dbh->commit();
 	my $success;
 	my $result = ($success ? $dbh->commit : $dbh->rollback);
 	unless ($result) { 
     	    die "Couldn't finish transaction: " . $dbh->errstr 
 	}
+
+	# Save History after change:
+	saveHistory($item_folder,'UPDATED_REPAIRFOLDER_MANUALRENAME');
 
 	print "OK!<br>\n";
 	print "<br>\n";

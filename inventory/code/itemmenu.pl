@@ -148,8 +148,8 @@ print "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
 
 #my $thisfolder=$itemfolder;
 
-
-my @itemrow = $dbh->selectrow_array("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber,item_workgroup,item_lent_by,item_lent_to_email  FROM items WHERE item_folder='$item_folder';");
+my @itemrow = $dbh->selectrow_array("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber,item_workgroup,item_responsibleperson,item_uniqueID  FROM items WHERE item_folder='$item_folder';");
+die("Only one element was returned while asking the database for a complete row of item data! Please check SQL query (to changed schema?) and update implementation!") unless (@itemrow > 1);
 
 my $item_folder = @itemrow[0];
 my $item_basedon = @itemrow[1];
@@ -166,11 +166,46 @@ my $item_category = @itemrow[11];
 my $item_versionnumber = @itemrow[12];
 my $item_serialnumber = @itemrow[13];
 my $item_workgroup = @itemrow[14];
-my $item_lentby = @itemrow[15];
-my $item_lentToEmail = @itemrow[16];
-
+my $item_responsibleperson = @itemrow[15];
+my $item_uniqueID = @itemrow[16];
 
 print "<h1>ISIP Inventory: $item_name</h1>";
+
+
+
+
+my $sth = $dbh->prepare("SELECT history_itemuniqueid,history_operation,history_operationtime,history_xmlblob FROM history WHERE history_itemuniqueid = ? ;");
+if ($sth->err()) { die "$DBI::errstr\n"; }                                                                                                                                     
+$sth->execute("5");                                                                                                                                            
+	                                                                                                                                                                                   
+my $existsInDB = 0;                                                                                                                                                    
+while(my @row = $sth->fetchrow_array())                                                                                                                                
+{                                                                                                                                                                      
+        $existsInDB = 1;                                                                                                                                                   
+        #print "The folder $itemfolder is already in the database.\n";                                                                                                     
+        print "$row[0], $row[1], $row[2], $row[3] <br>\n";                                                                                                                              
+}                                                                                                                                                                      
+print "exists=$existsInDB" ;	                                                                                                                                                                               
+$sth->finish;                                                                                                                                                          
+											                                                                                                                                                                               
+											               
+
+print "<br><br>" . $item_folder;                                                                                                                                               
+my $historystatement = $dbh->prepare("SELECT history_itemuniqueid,history_operation,history_operationtime,history_xmlblob FROM history WHERE history_itemuniqueid = '5' ;");   
+if ( !defined $historystatement ) {                                                                                                                                            
+die "Cannot prepare statement: $DBI::errstr\n";                                                                                                                                
+}                                                                                                                                                                              
+$historystatement->execute('3');#$item_uniqueID); #$item_folder);                                                                                                
+                                                                                                                                                                               
+                                                                                                                                                                               
+my @row;                                                                                                                                                                       
+while ( @row = $historystatement->fetchrow()){                                                                                                                                 
+print "...intervening code..." ;                                                                                                                                               
+}                                                                                                                                                                              
+       
+
+
+
 
 my $fieldhelpfontsize = 1;
 # Dann kommt eine HTML-Tabelle, die die ganzen Inventargegenstände dieser Kategorie
@@ -343,16 +378,39 @@ else
 	print "<font color='grey'>none.</font><br>";
 }
 
-
 # Save button:
 print "    <br><input type='submit' value='Save'>";
 print "	<input type='button' value='Cancel' onclick='document.location.href=\"/#$item_folder\"'>";
 # End of form
 print "</form>";
 
-print "<br>\n";
+# History:
+print "<u>Item History:</u><br>";
+print "<table border=1>";
+my $historystatement = $dbh->prepare("SELECT history_itemuniqueid,history_operation,history_operationtime,history_xmlblob FROM history WHERE history_itemuniqueid = ? ;");
+if ($historystatement->err()) { die "Cannot prepare statement: $DBI::errstr\n"; }                                                                                                                                     
+$historystatement->execute($item_uniqueID);
+while ( (my $history_itemuniqueid, my $history_operation, my $history_operationtime, my $history_xmlblob)  = $historystatement->fetchrow())
+{
+    my $timestring = scalar( localtime($history_operationtime));
+    print "<tr><th>$timestring</th><th>$history_operation</th> $history_xmlblob </tr>";
+}
+$historystatement->finish();
+print "</table>";
+
+# Delete Button:
 print "<br>\n";
 print "<input type='button' value='Delete this item...' onclick='document.location.href=\"/style/notimplemented.html\"'>";
 
+
 print "</body></html>\n";
 
+
+
+
+
+sub showPhotos
+{
+
+
+}

@@ -52,7 +52,7 @@
 <VirtualHost *:443>
 	ServerAdmin isip_sysadm@isip.uni-luebeck.de
 	ServerName inventory.isip.uni-luebeck.de
-	DocumentRoot /var/www/inventory
+	DocumentRoot /var/www/inventory/docroot
 
         SSLEngine On
         SSLCertificateFile /etc/apache2/ssl/apache.pem
@@ -180,13 +180,14 @@
 		#SSLRequireSSL
 	</Location>
 	
-	#------- Allow CGI scripts for creating new repositories and such ----------
+	#------- Allow CGI scripts for creating new items and such ----------
 	ScriptAlias /itemmenu.pl /var/www/inventory/code/itemmenu.pl
 	ScriptAlias /saveitem.pl /var/www/inventory/code/saveitem.pl
 	ScriptAlias /repairfolder.pl /var/www/inventory/code/repairfolder.pl
 	ScriptAlias /folderoperations.pl /var/www/inventory/code/folderoperations.pl
 	ScriptAlias /createitem.pl /var/www/inventory/code/createitem.pl
-	ScriptAlias / /var/www/inventory/code/mainmenu.pl
+	ScriptAlias /mainmenu.pl /var/www/inventory/code/mainmenu.pl
+	#ScriptAlias / /var/www/inventory/code/mainmenu.pl
 	
 	#-------------------------End of CGI activation ----------------------------
 	

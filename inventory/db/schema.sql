@@ -14,8 +14,7 @@ create table items (
 	item_versionnumber	text,
 	item_serialnumber	text,
 	item_workgroup		text,
-	item_lent_by		text,
-	item_lent_to_email	text,
+	item_responsibleperson	text,
 	item_uniqueID		integer primary key autoincrement
 );
 
@@ -36,23 +35,8 @@ create table categories (
 create table history (
 	history_itemuniqueid	integer,
 	history_operation	text,
-        history_folder      	text,
-	history_linkedfolder 	text,
-        history_name        	text,
-        history_description 	text,
-	history_state       	text,
-	history_wikiurl     	text,
-        history_room        	integer,
-	history_shelf	 	text,
-	history_currentuser	text,
-	history_invoicedate 	text,
-	history_uniinvnum   	text,
-	history_category	integer,
-	history_versionnumber	text,
-	history_serialnumber	text,
-	history_workgroup	text,
-	history_lent_by		text,
-	history_lent_to_email	text
+	history_operationtime	integer,
+	history_xmlblob		text	
 );
 
 insert into rooms (room_id,room_number,room_floor,room_building,room_name) values (1,'27','1. Stock','Haus 64','Biosignal Lab');                        

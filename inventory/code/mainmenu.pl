@@ -75,7 +75,9 @@ my %items;
 
 
 my $sth = $dbh->prepare("SELECT * FROM items WHERE item_folder = ? ;");
+my $sthforinsert = $dbh->prepare("SELECT item_uniqueID FROM items WHERE item_folder = ? ;");
 if ($sth->err()) { die "$DBI::errstr\n"; }
+if ($sthforinsert->err()) { die "$DBI::errstr\n"; }
 
 foreach my $itemfolder (@allitemfolders) 
 {
@@ -86,10 +88,13 @@ foreach my $itemfolder (@allitemfolders)
 	my $existsInDB = 0;
 	while(my @row = $sth->fetchrow_array())
 	{
-	$existsInDB = 1;
-	#print "The folder $itemfolder is already in the database.\n";
-	#print "$row[0], $row[2], $row[3]\n";
+	    $existsInDB = 1;
+	    #print "The folder $itemfolder is already in the database.\n";
+	    #print "$row[0], $row[2], $row[3]\n";
 	}
+	
+	$sth->finish;
+
 
 	# check if folder is already in DB
 	if (!$existsInDB)
@@ -100,14 +105,33 @@ foreach my $itemfolder (@allitemfolders)
 		    if ( $itemfolder =~ m/^\w(\w|\.|\-)+$/ )
 		    {
 				my $rv = $dbh->do("INSERT INTO items (item_folder,item_name,item_description,item_room,item_category,item_state) VALUES ('$itemfolder','$itemfolder','...','0','0','Functional')");
-				print "<font color='gray'>(The new item '$itemfolder' was inserted into the database.)</font><br>\n";
 				#print "rv=$rv<br>\n";
 		
 				#my @row_ary = $dbh->selectrow_array("SELECT * FROM items ");
 				#print "$row_ary[0], $row_ary[2], $row_ary[3]\n";	
 		
 				$dbh->commit();
-				### insert!
+				### insert!				
+				
+				# track operation in history table:
+				$sthforinsert->execute($itemfolder);
+				my $uniqueID=0; # valid values begin at 1!
+				while ( (my $id) = $sthforinsert->fetchrow_array() )
+				{
+				    # Make sure than only one item with the given folder name exists:
+				    die("Error in implementation: There are more than one item in the DB with the folder name '$itemfolder'! This code should never have been reached!") unless($uniqueID==0);
+				    
+				    # Assign newly created unique ID to variable:
+				    $uniqueID = $id;
+				    #print "These UIDs exist for the given folder: $uniqueID<br>\n";
+				}
+				$sthforinsert->finish();
+				my $time = time();
+				#print "Inserting ID=$uniqueID, ITEM=$itemfolder, TIME=$time !";
+				my $h =  $dbh->do("INSERT INTO history (history_itemuniqueid,history_operation,history_operationtime,history_xmlblob) VALUES ($uniqueID,'CREATE_MMAUTO',$time,'<td title=\"Item Name\">$itemfolder</td><td title=\"Item Unix Folder\">$itemfolder</td><td title=\"Item Description\">...</td>')");				
+				$dbh->commit();
+				
+				print "<font color='gray'>(The new item '$itemfolder' was inserted into the database.)</font><br>\n";
 		    }
 		    else
 	        {
@@ -123,8 +147,11 @@ foreach my $itemfolder (@allitemfolders)
 	{
     	    #print "nothing to be done.<br>\n";
 	}
+	
   }
 }
+# finish this operation
+$sth->finish();
 
 
 ###################################
@@ -249,7 +276,7 @@ foreach my $categoryrowref (@{$categoryrowsref})
 		  }
 		  else
 		  {
-			print "<a href='repairfolder.pl?item_folder=$item_folder'><font color='red'>Alert: The photo folder of this item was not found! Was is renamed or deleted via WebDAV? Click to repair!</font></a>";
+			print "<a href='repairfolder.pl?item_folder=$item_folder'><font color='red'>Alert: The photo folder of this item was not found! Was it renamed or deleted via WebDAV? Click to repair!</font></a>";
 		  }
 
 			#print "@allitemsfiles";
@@ -311,6 +338,9 @@ print "<a href='/?thumbnailresolution=48'> Rebuild thumbnails at 48 pixels </a> 
 print "<a href='/?thumbnailresolution=100'> Rebuild thumbnails at 100 pixels </a> <br>\n";
 print "<br>";
 print "<br>";
+
+my $timestring = scalar( localtime(time));
+print "This page was generated at $timestring .<br>\n";
 
 print "</body></html>\n";
 
