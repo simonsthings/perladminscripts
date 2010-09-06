@@ -171,40 +171,8 @@ my $item_uniqueID = @itemrow[16];
 
 print "<h1>ISIP Inventory: $item_name</h1>";
 
-
-
-
-my $sth = $dbh->prepare("SELECT history_itemuniqueid,history_operation,history_operationtime,history_xmlblob FROM history WHERE history_itemuniqueid = ? ;");
-if ($sth->err()) { die "$DBI::errstr\n"; }                                                                                                                                     
-$sth->execute("5");                                                                                                                                            
-	                                                                                                                                                                                   
-my $existsInDB = 0;                                                                                                                                                    
-while(my @row = $sth->fetchrow_array())                                                                                                                                
-{                                                                                                                                                                      
-        $existsInDB = 1;                                                                                                                                                   
-        #print "The folder $itemfolder is already in the database.\n";                                                                                                     
-        print "$row[0], $row[1], $row[2], $row[3] <br>\n";                                                                                                                              
-}                                                                                                                                                                      
-print "exists=$existsInDB" ;	                                                                                                                                                                               
-$sth->finish;                                                                                                                                                          
-											                                                                                                                                                                               
-											               
-
-print "<br><br>" . $item_folder;                                                                                                                                               
-my $historystatement = $dbh->prepare("SELECT history_itemuniqueid,history_operation,history_operationtime,history_xmlblob FROM history WHERE history_itemuniqueid = '5' ;");   
-if ( !defined $historystatement ) {                                                                                                                                            
-die "Cannot prepare statement: $DBI::errstr\n";                                                                                                                                
-}                                                                                                                                                                              
-$historystatement->execute('3');#$item_uniqueID); #$item_folder);                                                                                                
-                                                                                                                                                                               
-                                                                                                                                                                               
-my @row;                                                                                                                                                                       
-while ( @row = $historystatement->fetchrow()){                                                                                                                                 
-print "...intervening code..." ;                                                                                                                                               
-}                                                                                                                                                                              
-       
-
-
+# see sub-procedure at end of file.
+showPhotos();
 
 
 my $fieldhelpfontsize = 1;
@@ -216,6 +184,7 @@ print "<form action='/saveitem.pl' method='get'>\n";
 print "    <input type='submit' value='Save'>";
 print "	<input type='button' value='Cancel' onclick='document.location.href=\"/#$item_folder\"'>";
 print "<br><br>";
+
 
 print "Things that don't change:";
 print "<TABLE BORDER=1 rules='rows' CELLSPACING=0 CELLPADDING=0 width='100%' BORDERCOLOR='darkgrey'>";
@@ -246,6 +215,16 @@ print "<tr><th width=200 bgcolor='#6b7f93'><font color='white'>Item Description<
 print "<tr><th bgcolor='#6b7f93'><font color='white'>ISIP Wiki URL (<a href='$item_wikiurl'>visit</a>)</font></th><td bgcolor='white'><input type='text' name='item_wikiurl' value='$item_wikiurl'><font size='$fieldhelpfontsize'> (copy&paste URL here) </font></td></tr>";
 print "<tr><th bgcolor='#6b7f93'><font color='white'>Inventory Number</font></th><td bgcolor='white'><input type='text' name='item_inventorynumber' value='$item_inventorynumber'><font size='$fieldhelpfontsize'> (the official inventory number assigned by the university) </font></td></tr>";
 print "<tr><th bgcolor='#6b7f93'><font color='white'>Invoice Date</font></th><td bgcolor='white'><input type='text' name='item_invoicedate' value='$item_invoicedate'><font size='$fieldhelpfontsize'> (german: Rechnungsdatum. Might be important for repairs!) </font></td></tr>";
+# Workgroup & Who to ask:
+print "<tr><th bgcolor='#6b7f93'><font color='white'>Workgroup</font></th><td bgcolor='white'><select name='item_workgroup' size='1'>";
+{
+my $isselected;
+if ($item_workgroup eq "Uli") {$isselected = "selected";} else {$isselected = "";}
+print "<option value='Uli' $isselected>Uli</option>";
+if ($item_workgroup eq "Alfred") {$isselected = "selected";} else {$isselected = "";}
+print "<option value='Alfred' $isselected>Alfred</option>";
+}
+print "</select> Who to ask about it: <input type='text' name='item_responsibleperson' value='$item_responsibleperson'><font size='$fieldhelpfontsize'> (member of ISIP staff) </font></td></tr>";
 print "</table>";
 
 print "<br>Things that change:";
@@ -254,19 +233,16 @@ print "<TABLE BORDER=1 rules='rows' CELLSPACING=0 CELLPADDING=0 width='100%' BOR
 # item state:
 print "<tr><th width=200 bgcolor='#6b7f93'><font color='white'>Item State</font></th><td bgcolor='white'>";
 my $statestring = "";
-if ($item_state eq "Functional") {$statestring = "checked";}
-else {$statestring = "";}
+if ($item_state eq "Functional") {$statestring = "checked";} else {$statestring = "";}
 print "    <input type=\"radio\" name=\"item_state\" value=\"Functional\" $statestring> Functional";
-if ($item_state eq "Partly Functional") {$statestring = "checked";}                                                                                  
-else {$statestring = "";} 
+if ($item_state eq "Partly Functional") {$statestring = "checked";} else {$statestring = "";} 
 print "    <input type=\"radio\" name=\"item_state\" value=\"Partly Functional\" $statestring> Partly Functional";
-if ($item_state eq "Destroyed") {$statestring = "checked";}                                                                                  
-else {$statestring = "";} 
+if ($item_state eq "Destroyed") {$statestring = "checked";} else {$statestring = "";} 
 print "    <input type=\"radio\" name=\"item_state\" value=\"Destroyed\" $statestring> Destroyed";
 print " </td></tr>";
 # item location:
 print "<tr><th bgcolor='#6b7f93'><font color='white'>Location</font></th><td bgcolor='white'><select name='item_room' size='1'>";
-print "<option value=0>Other (use secret map field)</option>";
+print "<option value=0>Other (specify below)</option>";
 my $allroomrowsref = $dbh->selectall_arrayref("SELECT room_id,room_number,room_floor,room_building,room_name FROM rooms");
 foreach my $roomrowref (@{$allroomrowsref})
 {
@@ -284,99 +260,13 @@ foreach my $roomrowref (@{$allroomrowsref})
 }
 print "</select><br><input type='text' size='45' name='item_shelf' value='$item_shelf'><font size='$fieldhelpfontsize'> (shelf, box, or secret map) </font></td></tr>";
 # item user:
-print "<tr><th bgcolor='#6b7f93'><font color='white'>Current User</font></th><td bgcolor='white'><input size=40 type='text' name='item_currentuser' value='$item_currentuser'><font size='$fieldhelpfontsize'> (the name & email of current user) </font></td></tr>";
+print "<tr><th bgcolor='#6b7f93'><font color='white'>Current User (Email)</font></th><td bgcolor='white'><input size=40 type='text' name='item_currentuser' value='$item_currentuser'><font size='$fieldhelpfontsize'> (e.g. email of current user / student) </font></td></tr>";
 print "</table>";
 
 print "    <input type='hidden' name='item_folder' value='$item_folder'>\n";
 print "    <input type='hidden' name='item_basedon' value='$item_basedon'>\n";
 #print "    <input type='hidden' name='item_category' value='$item_category'>\n";
 
-
-
-## Anzeigen der Miniatur-Photos:
-#
-# Die HTML-Zeile soll anklickbar sein, also müssen wir den HTML-Link vorbereiten:
-
-print "<br><u>Photos (click them!):</u><br>";
-
-my $thumbnailresolution = 48;
-my @otheritemfilenames;
-
-		  if (-e "$itemroot/$item_folder")
-		  {
-
-			$cmd = "ls -1A $itemroot/$item_folder";
-			my @allitemsfiles = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
-			if ($?) {print '<font color="red">Careful here: Listing contents of item folder has not worked! Read the gray screen output to find out why.</font>';};
-			# Chopping off the line breaks from all array elements (otherwise the comparison below will not work):
-			chomp(@allitemsfiles);
-
-			foreach my $imagefilename (@allitemsfiles)
-			{
-				# for each file that starts with a letter and ends with .jpg, .png or .gif
-				if ( ((substr($imagefilename, -4) eq (".jpg")) or (substr($imagefilename, -4) eq (".png")) or (substr($imagefilename, -4) eq (".gif")))
-					and ($imagefilename =~ m/^\w(\w|\.)+$/) )
-				{
-					my $thumbnailfile = "$itemroot/../thumbs/$item_folder/$imagefilename";
-
-					#create thumbnail folder if it does not exist yet:
-					if (!(-e "$itemroot/../thumbs/$item_folder/."))
-					{
-						$cmd = "mkdir -p \"$itemroot/../thumbs/$item_folder\"";
-						my @mkdirerror = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
-						if ($?) {print "<pre>@mkdirerror</pre> <br>\n";print '<font color="red">Careful here: Creating the thumbnail folder for $imagefilename has not worked! Read the gray screen output to find out why.</font>';};
-					}
-
-					# generate thumbnail if it does not exist yet
-					if (!(-e $thumbnailfile))
-					{
-						#`"mkdir \"$itemroot/../thumbs/$item_folder\""`;
-						$cmd = "convert \"$itemroot/$item_folder/$imagefilename\" -resize x$thumbnailresolution \"$thumbnailfile\"";
-						my @outputlines = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
-						
-						if ($?) {print "<pre>@outputlines</pre> <br>\n";print '<font color="red">Careful here: Converting the image has not worked! Read the gray screen output to find out why.</font>';};
-					}
-					else
-					{
-						#print "thumbnail of $imagefilename already there.<br>\n"
-					}
-					
-					# link to thumb				
-					print "<a href='images/$item_folder/$imagefilename'><img border=0 src='thumbs/$item_folder/$imagefilename'></a> ";
-				}
-				else
-				{
-					push (@otheritemfilenames, $imagefilename);
-					#print "Other file: $imagefilename ";
-				}
-			}
-		  }
-		  else
-		  {
-			print "<font color='red'>Alert: The photo folder of this item was not found! Was is renamed or deleted via WebDAV? Click to repair!</font>";
-		  }
-
-
-
-
-
-
-## Ende der photos
-
-print "<br><br><u>Other files:</u><br>";
-
-if (@otheritemfilenames)
-{
-#	print "<h3>Other files:</h3>";
-	foreach my $otherfilename (@otheritemfilenames)
-	{
-		print "<a href='items/$item_folder/$otherfilename'><font color='grey'>$otherfilename</font></a><br>\n";
-	}
-}
-else
-{
-	print "<font color='grey'>none.</font><br>";
-}
 
 # Save button:
 print "    <br><input type='submit' value='Save'>";
@@ -393,7 +283,7 @@ $historystatement->execute($item_uniqueID);
 while ( (my $history_itemuniqueid, my $history_operation, my $history_operationtime, my $history_xmlblob)  = $historystatement->fetchrow())
 {
     my $timestring = scalar( localtime($history_operationtime));
-    print "<tr><th>$timestring</th><th>$history_operation</th> $history_xmlblob </tr>";
+    print "<tr><th nowrap>$timestring</th><th nowrap>$history_operation</th> $history_xmlblob </tr>";
 }
 $historystatement->finish();
 print "</table>";
@@ -412,5 +302,85 @@ print "</body></html>\n";
 sub showPhotos
 {
 
+    ## Anzeigen der Miniatur-Photos:
+    #
+    # Die HTML-Zeile soll anklickbar sein, also müssen wir den HTML-Link vorbereiten:
+
+    print "<u>Photos (click them!):</u><br>";
+
+    my $thumbnailresolution = 200;
+    my @otheritemfilenames;
+
+    if (-e "$itemroot/$item_folder")
+    {
+
+        $cmd = "ls -1A $itemroot/$item_folder";
+        my @allitemsfiles = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
+        if ($?) {print '<font color="red">Careful here: Listing contents of item folder has not worked! Read the gray screen output to find out why.</font>';};
+        # Chopping off the line breaks from all array elements (otherwise the comparison below will not work):
+        chomp(@allitemsfiles);
+	
+	foreach my $imagefilename (@allitemsfiles)
+	{
+		# for each file that starts with a letter and ends with .jpg, .png or .gif
+		if ( ((substr($imagefilename, -4) eq (".jpg")) or (substr($imagefilename, -4) eq (".png")) or (substr($imagefilename, -4) eq (".gif"))) and ($imagefilename =~ m/^\w(\w|\.)+$/) )
+		{
+			my $thumbnailfile = "$itemroot/../thumbs/$item_folder/${thumbnailresolution}px-$imagefilename";
+
+			#create thumbnail folder if it does not exist yet:
+			if (!(-e "$itemroot/../thumbs/$item_folder/."))
+			{
+				$cmd = "mkdir -p \"$itemroot/../thumbs/$item_folder\"";
+				my @mkdirerror = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
+				if ($?) {print "<pre>@mkdirerror</pre> <br>\n";print '<font color="red">Careful here: Creating the thumbnail folder for $imagefilename has not worked! Read the gray screen output to find out why.</font>';};
+			}
+
+			# generate thumbnail if it does not exist yet
+			if (!(-e $thumbnailfile))
+			{
+				#`"mkdir \"$itemroot/../thumbs/$item_folder\""`;
+				$cmd = "convert \"$itemroot/$item_folder/$imagefilename\" -resize x$thumbnailresolution \"$thumbnailfile\"";
+				my @outputlines = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
+				
+				if ($?) {print "<pre>@outputlines</pre> <br>\n";print '<font color="red">Careful here: Converting the image has not worked! Read the gray screen output to find out why.</font>';};
+			}
+			else
+			{
+				#print "thumbnail of $imagefilename already there.<br>\n"
+			}
+				
+			# link to thumb				
+			print "<a href='images/$item_folder/$imagefilename'><img border=0 src='thumbs/$item_folder/${thumbnailresolution}px-$imagefilename'></a> ";
+		}
+		else
+		{
+			push (@otheritemfilenames, $imagefilename);
+			#print "Other file: $imagefilename ";
+		}
+	}
+    }
+    else
+    {
+	print "<font color='red'>Alert: The photo folder of this item was not found! Was is renamed or deleted via WebDAV? Click to repair!</font>";
+    }
+    ## Ende der photos
+
+
+
+    ## Andere Dateien:
+    print "<br><br><u>Other files:</u><br>";
+
+    if (@otheritemfilenames)
+    {
+    #	print "<h3>Other files:</h3>";
+	foreach my $otherfilename (@otheritemfilenames)
+	{
+		print "<a href='items/$item_folder/$otherfilename'><font color='grey'>$otherfilename</font></a><br><br>\n";
+	}
+    }
+    else
+    {
+	print "<font color='grey'>none.</font><br><br>";
+    }
 
 }

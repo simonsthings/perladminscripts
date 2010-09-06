@@ -48,17 +48,17 @@ print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
 print "<html><head><title>ISIP Inventory Webapplication</title></head><body bgcolor='#E0E0E0'>\n";
 print "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
 
-
+# TODO change this to use uniqueIDs that have previously been found. So we can add the uniqueID of the other folder!
 sub saveHistory
 {
-    my ($item_folder,$operation_string) = @_;
+    my ($givenItemFolder,$operation_string) = @_;
     
     my @itemrow = $dbh->selectrow_array("SELECT 
     item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber,item_workgroup,item_responsibleperson,item_uniqueID,
     room_id,room_number,room_floor,room_building,room_name,
     category_id,category_name
     FROM items LEFT JOIN rooms ON items.item_room=rooms.room_id LEFT JOIN categories ON items.item_category=categories.category_id 
-    WHERE items.item_folder='$item_folder';");
+    WHERE items.item_folder='$givenItemFolder';");
     my $item_folderDB = @itemrow[0];
     my $item_linkedfolder = @itemrow[1];
     my $item_name = @itemrow[2];
@@ -84,6 +84,7 @@ sub saveHistory
     my $category_id = @itemrow[22];
     my $category_name = @itemrow[23];
     
+    
 #    my $roomString = "Unspecified";
 #    if ($item_room != 0)
 #    {
@@ -91,31 +92,34 @@ sub saveHistory
 #    }    
 #    my $categoryString;
 
-    my $time = time();
-    my $ar =  $dbh->do("INSERT INTO history (history_itemuniqueid,history_operation,history_operationtime,history_xmlblob) 
-	VALUES ($item_uniqueID,$operation_string,$time,'
-	<td title=\"Room\">$room_name</td>
-	<td title=\"Shelf\">$item_shelf</td>
-	<td title=\"State\">$item_state</td>
-	<td title=\"Current User\">$item_currentuser</td>
-	<td title=\"Responsible Person\">$item_responsibleperson</td>
-	<td title=\"-\"> </td>
-	<td title=\"Item Name\">$item_name</td>
-	<td title=\"Unix Folder\">$item_folder</td>
-	<td title=\"Description\">$item_description</td>
-	<td title=\"LinkedFolder\">$item_linkedfolder</td>
-	<td title=\"Wiki URL\">$item_wikiurl</td>
-	<td title=\"Invoice Date\">$item_invoicedate</td>
-	<td title=\"University Inventory #\">$item_inventorynumber</td>
-	<td title=\"Serial Number\">$item_serialnumber</td>
-	<td title=\"Version\">$item_versionnumber</td>
-	<td title=\"Workgroup\">$item_workgroup</td>
-	<td title=\"Category\">$category_name</td>
-	<td title=\"Room ID\">$item_room</td>
-	<td title=\"Category ID\">$item_category</td>
-	')"); 
+    my $xmlblob = "<td nowrap title=\"Room\">$room_name</td>\
+	<td nowrap title=\"Shelf\">$item_shelf</td> \
+	<td nowrap title=\"State\">$item_state</td> \
+	<td nowrap title=\"Current User\">$item_currentuser</td> \
+	<td nowrap title=\"Responsible Person\">$item_responsibleperson</td> \ 
+ 	<td nowrap title=\"-\"> </td> \
+	<td nowrap title=\"Item Name\">$item_name</td> \
+	<td nowrap title=\"Unix Folder\">$item_folderDB</td> \
+	<td nowrap title=\"Description\">$item_description</td> \
+	<td nowrap title=\"LinkedFolder\">$item_linkedfolder</td> \
+	<td nowrap title=\"Wiki URL\">$item_wikiurl</td> \
+	<td nowrap title=\"Invoice Date\">$item_invoicedate</td> \
+	<td nowrap title=\"University Inventory #\">$item_inventorynumber</td> \
+	<td nowrap title=\"Serial Number\">$item_serialnumber</td> \
+	<td nowrap title=\"Version\">$item_versionnumber</td> \
+	<td nowrap title=\"Workgroup\">$item_workgroup</td> \
+	<td nowrap title=\"Category\">$category_name</td> \
+	<td nowrap title=\"Item Unique ID\">$item_uniqueID</td> 
+	<td nowrap title=\"Room ID\">$item_room</td> 
+	<td nowrap title=\"Category ID\">$item_category</td>";
 
-	$dbh->commit();
+    print "<table border=1><tr>$xmlblob</tr></table>";
+    	
+    my $time = time();
+    my $ar =  $dbh->do("INSERT INTO history (history_itemuniqueid,history_operation,history_operationtime,history_xmlblob) VALUES ('$item_uniqueID','$operation_string','$time','$xmlblob')"); 
+
+    # Do not commit here: Do it in calling code only when thte actual operation succeeded!
+    #$dbh->commit();
 }
 
 if ($itemaction eq "repair")
@@ -132,16 +136,21 @@ if ($itemaction eq "repair")
 	saveHistory($actionA_folder,'DELETED_REPAIROTHER');
 	
     	$dbh->do("DELETE FROM items WHERE item_folder='$actionA_folder';");
-	$dbh->do("UPDATE items SET item_folder = '$actionA_folder' WHERE item_folder = '$item_folder' ;");
-	#$dbh->commit();
-	my $success;
-	my $result = ($success ? $dbh->commit : $dbh->rollback);
-	unless ($result) { 
-    	    die "Couldn't finish transaction: " . $dbh->errstr 
-	}
-
+	my $rows_affected = $dbh->do("UPDATE items SET item_folder = '$actionA_folder' WHERE item_folder = '$item_folder' ;");
+	
 	# Save History after change:
-	saveHistory($item_folder,'UPDATED_REPAIRFOLDER_MANUALRENAME');
+	saveHistory($actionA_folder,'REPAIR_FOLDERRENAMED');
+
+	if ($rows_affected == 1)
+	{
+	    #commit
+	    $dbh->commit;
+	}
+	else
+	{
+	    $dbh->rollback; 
+    	    die "Problem during transaction: Exactly 1 item should have been updated but $rows_affected were. You must not reload the current page! If you did not do that, this is an error!" . $dbh->errstr 
+	}
 
 	print "OK!<br>\n";
 	print "<br>\n";
@@ -273,6 +282,7 @@ print "	<a href='/#$item_folder'>Back to Main List</a>";
 
 print "</body></html>\n";
 
+$dbh->disconnect();
 
 sub findNextFoldername
 {
