@@ -13,19 +13,37 @@ my $dbh = DBI->connect("dbi:SQLite:dbname=../db/iteminfos.db","","",$dbargs);
 
 
 my $itemroot = "/var/www/inventory/items";
+my $docroot = "$ENV{DOCUMENT_ROOT}";                                                                                                                         
+my $mainmenucache = "mainmenu.html";
 my $tablerowbgcolor = "#ffffff";
 
+                                                                                                                                                             
+#my $cgi_item_folder = $cgi->param('itemfolder');                                                                                                             
+my $cgi_item_uniqueID = $cgi->param('itemID');                                                                                                               
+ 
 my $cmd;
 my $cmdoutput;
 
+open(OUTKFILE, "> $docroot/$mainmenucache") or die "Can't write to file $mainmenucache: $!";
+
 # Make HTML header:
-print "Content-type: text/html\n\n";
-print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
-print "<html><head><title>LabTracker: ISIP Inventory Webapplication</title></head><body link='#000000' vlink='#000000' alink='blue' bgcolor='#E0E0E0'>\n";
-print "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
-print "<h1>LabTracker ISIP Inventory Webapplication</h1>\n";
-print "(<a href='http://en.wikipedia.org/wiki/WebDAV#Implementations'>Mount</a> <i><b>https://inventory.isip.uni-luebeck.de/items/</b></i> as a network drive for uploading images via the file system.)<br>\n";
-#print "<br>\n";
+print OUTKFILE '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
+print OUTKFILE "<html><head><title>LabTracker - Main Menu</title>";
+#print OUTKFILE "<meta HTTP-EQUIV=\"REFRESH\" content=\"2; url=/$mainmenucache#$ENV{QUERY_STRING}\">";                                                                              
+print OUTKFILE "</head><body link='#000000' vlink='#000000' alink='blue' bgcolor='#E0E0E0'>\n";
+print OUTKFILE "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
+#print OUTKFILE "<h1>LabTracker ISIP Inventory Webapplication</h1>\n";
+#print OUTKFILE "(<a href='http://en.wikipedia.org/wiki/WebDAV#Implementations'>Mount</a> <i><b>https://inventory.isip.uni-luebeck.de/items/</b></i> as a network drive for uploading images via the file system.)<br>\n";
+#print OUTKFILE "<br>\n";
+
+
+#print OUTKFILE "hallaaa";
+#print OUTKFILE "docroot = $docroot ! <br><br>";                                                                                                                       
+   
+
+
+
+
 
 #################
 ### Housekeeping:
@@ -36,11 +54,11 @@ my  $thumbnailresolution 		= $cgi->param('thumbnailresolution');
 if (!(defined $thumbnailresolution)){$thumbnailresolution = "48"} # may lead to differently sized icons for new items if old ones are non-48. But who cares?
 else 
 {
-	print "<font color='gray'>(Rebuilding thumbnails at height $thumbnailresolution px!)</font><br>\n";
+	print OUTKFILE "<font color='gray'>(Rebuilding thumbnails at height $thumbnailresolution px!)</font><br>\n";
 	# execute the delete command
 	$cmd = "rm $itemroot/../thumbs/ -R";
 	my @mkdirerror = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
-	if ($?) {print "<pre>@mkdirerror</pre> <br>\n";print '<font color="red">Careful here: Creating the thumbnail folder for $imagefilename has not worked! Read the gray screen output to find out why.</font>';};
+	if ($?) {print OUTKFILE "<pre>@mkdirerror</pre> <br>\n";print OUTKFILE '<font color="red">Careful here: Creating the thumbnail folder for $imagefilename has not worked! Read the gray screen output to find out why.</font>';};
 }
 
 
@@ -51,10 +69,10 @@ if (!(-e "$itemroot/."))
 	my @mkdirerror2 = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
 	if ($?) 
 	{
-		print "<pre>@mkdirerror2</pre> <br>\n";
-		print '<font color="red">Careful here: Creating the item folder for the first time has not worked! Read the gray screen output to find out why.</font>';
+		print OUTKFILE "<pre>@mkdirerror2</pre> <br>\n";
+		print OUTKFILE '<font color="red">Careful here: Creating the item folder for the first time has not worked! Read the gray screen output to find out why.</font>';
 	}
-	else {print "The item folder has been created. This is the first execution on a new server, isn't it?";}
+	else {print OUTKFILE "The item folder has been created. This is the first execution on a new server, isn't it?";}
 }
 
 
@@ -64,7 +82,7 @@ if (!(-e "$itemroot/."))
 
 $cmd = "ls -1A $itemroot/";
 my @allitemfolders = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
-if ($?) {print '<font color="red">Careful here: Listing all item folders has not worked! Read the gray screen output to find out why.</font>';};
+if ($?) {print OUTKFILE '<font color="red">Careful here: Listing all item folders has not worked! Read the gray screen output to find out why.</font>';};
 
 # Chopping off the line breaks from all array elements (otherwise the comparison below will not work):
 chomp(@allitemfolders);
@@ -89,8 +107,8 @@ foreach my $itemfolder (@allitemfolders)
 	while(my @row = $sth->fetchrow_array())
 	{
 	    $existsInDB = 1;
-	    #print "The folder $itemfolder is already in the database.\n";
-	    #print "$row[0], $row[2], $row[3]\n";
+	    #print OUTKFILE "The folder $itemfolder is already in the database.\n";
+	    #print OUTKFILE "$row[0], $row[2], $row[3]\n";
 	}
 	
 	$sth->finish;
@@ -105,10 +123,10 @@ foreach my $itemfolder (@allitemfolders)
 		    if ( $itemfolder =~ m/^\w(\w|\.|\-)+$/ )
 		    {
 				my $rv = $dbh->do("INSERT INTO items (item_folder,item_name,item_description,item_room,item_category,item_state) VALUES ('$itemfolder','$itemfolder','...','0','0','Functional')");
-				#print "rv=$rv<br>\n";
+				#print OUTKFILE "rv=$rv<br>\n";
 		
 				#my @row_ary = $dbh->selectrow_array("SELECT * FROM items ");
-				#print "$row_ary[0], $row_ary[2], $row_ary[3]\n";	
+				#print OUTKFILE "$row_ary[0], $row_ary[2], $row_ary[3]\n";	
 		
 				$dbh->commit();
 				### insert!				
@@ -123,29 +141,29 @@ foreach my $itemfolder (@allitemfolders)
 				    
 				    # Assign newly created unique ID to variable:
 				    $uniqueID = $id;
-				    #print "These UIDs exist for the given folder: $uniqueID<br>\n";
+				    #print OUTKFILE "These UIDs exist for the given folder: $uniqueID<br>\n";
 				}
 				$sthforinsert->finish();
 				my $time = time();
-				#print "Inserting ID=$uniqueID, ITEM=$itemfolder, TIME=$time !";
+				#print OUTKFILE "Inserting ID=$uniqueID, ITEM=$itemfolder, TIME=$time !";
 				my $h =  $dbh->do("INSERT INTO history (history_itemuniqueid,history_operation,history_operationtime,history_xmlblob) VALUES ($uniqueID,'CREATE_MMAUTO',$time,'<td title=\"Item Name\">$itemfolder</td><td title=\"Item Unix Folder\">$itemfolder</td><td title=\"Item Description\">...</td>')");				
 				$dbh->commit();
 				
-				print "<font color='gray'>(The new item '$itemfolder' was inserted into the database.)</font><br>\n";
+				print OUTKFILE "<font color='gray'>(The new item '$itemfolder' was inserted into the database.)</font><br>\n";
 		    }
 		    else
 	        {
-				print "<font color='gray'>(No database item was created for '$itemfolder' because it contains invalid characters! Please rename the folder.)</font><br>\n";
+				print OUTKFILE "<font color='gray'>(No database item was created for '$itemfolder' because it contains invalid characters! Please rename the folder.)</font><br>\n";
 			}
 		}
 		else
 		{
-				print "<font color='gray'>(No database item was created for '$itemfolder' because it is not even a folder! Please remove the file and create a folder instead.)</font><br>\n";
+				print OUTKFILE "<font color='gray'>(No database item was created for '$itemfolder' because it is not even a folder! Please remove the file and create a folder instead.)</font><br>\n";
 		}
 	}
 	else
 	{
-    	    #print "nothing to be done.<br>\n";
+    	    #print OUTKFILE "nothing to be done.<br>\n";
 	}
 	
   }
@@ -157,7 +175,7 @@ $sth->finish();
 ###################################
 ### Output list of inventory items:
 ###################################
-#print "<h2>These items exist in the inventory database:</h2>\n";
+#print OUTKFILE "<h2>These items exist in the inventory database:</h2>\n";
 
 # Jetzt geht es an die eigentliche Ausgabe als HTML-Text!
 # Wir wollen dazu für jede Kategorie eine HTML-Tabelle mit den Inventargegenständen ausgeben.
@@ -172,25 +190,24 @@ foreach my $categoryrowref (@{$categoryrowsref})
 	my $category_name = @categoryrow[1];
 
 	# Get all items for current category (the ending "ref" stands for "reference", so think pointers!):
-	my $allitemrowsref = $dbh->selectall_arrayref("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category , rooms.room_id, rooms.room_number, rooms.room_floor, rooms.room_building, rooms.room_name, item_versionnumber, item_serialnumber FROM items LEFT JOIN rooms ON items.item_room=rooms.room_id WHERE item_category='$category_id';");
+	my $allitemrowsref = $dbh->selectall_arrayref("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category , rooms.room_id, rooms.room_number, rooms.room_floor, rooms.room_building, rooms.room_name, item_versionnumber, item_serialnumber, item_workgroup, item_responsibleperson, item_uniqueID FROM items LEFT JOIN rooms ON items.item_room=rooms.room_id WHERE item_category='$category_id';");
 	
 	my $itemcount = scalar(@{$allitemrowsref});
 	if ($itemcount > 0)
 	{  # closing bracket far below..
-		print "<h3>$category_name:</h3>";
-		#print "items in category $category_id: $len -> @{$allitemrowsref}";
+		print OUTKFILE "<h3>$category_name:</h3>";
+		#print OUTKFILE "items in category $category_id: $len -> @{$allitemrowsref}";
 
 		# Dann kommt eine HTML-Tabelle, die die ganzen Inventargegenstände dieser Kategorie
 		# enthält. Erst kommen die Überschriften, ...
-		print "<TABLE BORDER=1 rules='cols' CELLSPACING=0 CELLPADDING=0 width='100%' BORDERCOLOR='#6b7f93'>";
-		print "<TR ALIGN='middle' VALIGN='middle' bgcolor='#6b7f93' text='#ffffff' > ";
-		print "<th><font color='white'> Item Name & Model </font></th>";
-		print "<th><font color='white'> Photos </font></th>";
-		print "<th><font color='white'> Location & User </font></th>";
-		print "<th><font color='white'> Serial </font></th>";
-		print "<th><font color='white'>State</font></th>";
-		print "<th><font color='white'> Wiki-link </font></th>";
-		print "</tr>";
+		print OUTKFILE "<TABLE BORDER=1 rules='cols' CELLSPACING=0 CELLPADDING=0 width='100%' BORDERCOLOR='#6b7f93'>";
+		print OUTKFILE "<TR ALIGN='middle' VALIGN='middle' bgcolor='#6b7f93' text='#ffffff' > ";
+		print OUTKFILE "<th><font color='white'> Name, Model, Serial </font></th>";
+		print OUTKFILE "<th><font color='white'> Photos </font></th>";
+		print OUTKFILE "<th><font color='white'> Location & User </font></th>";
+		print OUTKFILE "<th><font color='white'> Wiki-link </font></th>";
+		print OUTKFILE "<th><font color='white'>State</font></th>";
+		print OUTKFILE "</tr>";
 		# ... dann kommen die eigentlichen Inventurgegenstände.
 		# Mit @{$categoryitems} sagen wir Perl, dass die Variable $categoryitems in Wirklichkeit 
 		# ein Array ist (markiert durch das @-Zeichen), damit wir darüber iterieren können.
@@ -211,8 +228,6 @@ foreach my $categoryrowref (@{$categoryrowsref})
 			my $item_invoicedate = @itemrow[9];
 			my $item_uniinvnum = @itemrow[10];
 			my $item_category = @itemrow[11];
-			my $item_versionnumber = @itemrow[17];
-			my $item_serialnumber = @itemrow[18];
 
 			my $room_id = @itemrow[12];
 			my $room_number = @itemrow[13];
@@ -220,88 +235,107 @@ foreach my $categoryrowref (@{$categoryrowsref})
 			my $room_building = @itemrow[15];
 			my $room_name = @itemrow[16];
 
+			my $item_versionnumber = @itemrow[17];
+			my $item_serialnumber = @itemrow[18];
+			my $item_workgroup = @itemrow[19];
+			my $item_responsibleperson = @itemrow[20];
+			my $item_uniqueID = @itemrow[21];
 
 			# Die HTML-Zeile soll anklickbar sein, also müssen wir den HTML-Link vorbereiten:
-			my $itemfolderlink = "itemmenu.pl?itemfolder=$item_folder";
+			my $itemfolderlink = "itemmenu.pl?itemID=$item_uniqueID";
 			
 			# Hier wird dann die eigentliche Zeile der HTML-Tabelle ausgegeben:
-			print "<TR ALIGN='middle' VALIGN='middle' bgcolor='$tablerowbgcolor'>\n";
+			print OUTKFILE "<TR title='item$item_uniqueID: WebDAV Folder https://inventory.isip.uni-luebeck.de/items/$item_folder/' ALIGN='middle' VALIGN='middle' bgcolor='$tablerowbgcolor'>\n";
 
-			print "<a></a><td ALIGN='left'>&nbsp;<a name='$item_folder' href='$itemfolderlink'>$item_name</a> $item_versionnumber</td>\n";
-			print "<td>\n";
-			
-		  if (-e "$itemroot/$item_folder")
-		  {
-
-			$cmd = "ls -1A $itemroot/$item_folder";
-			my @allitemsfiles = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
-			if ($?) {print '<font color="red">Careful here: Listing contents of item folder has not worked! Read the gray screen output to find out why.</font>';};
-			# Chopping off the line breaks from all array elements (otherwise the comparison below will not work):
-			chomp(@allitemsfiles);
-
-			foreach my $imagefilename (@allitemsfiles)
+			print OUTKFILE "<td ALIGN='left'><table border=0><td><a name='item$item_uniqueID' href='$itemfolderlink'>$item_name</a> $item_versionnumber";
+			if ($item_serialnumber ne "")
 			{
-				# for each file that starts with a letter and ends with .jpg, .png or .gif
-				if ( ((substr($imagefilename, -4) eq (".jpg")) or (substr($imagefilename, -4) eq (".png")) or (substr($imagefilename, -4) eq (".gif")))
-					and ($imagefilename =~ m/^\w(\w|\.)+$/) )
+			    print OUTKFILE ", $item_serialnumber\n";
+			}
+			print OUTKFILE "</td></table></td>\n";
+			
+			# Photos:
+			print OUTKFILE "<td width='40%'>\n";
+        		if (-e "$itemroot/$item_folder")
+			{
+
+				$cmd = "ls -1A $itemroot/$item_folder";
+				my @allitemsfiles = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
+				if ($?) {print OUTKFILE '<font color="red">Careful here: Listing contents of item folder has not worked! Read the gray screen output to find out why.</font>';};
+				# Chopping off the line breaks from all array elements (otherwise the comparison below will not work):
+				chomp(@allitemsfiles);
+
+				foreach my $imagefilename (@allitemsfiles)
 				{
-					my $thumbnailfile = "$itemroot/../thumbs/$item_folder/$imagefilename";
-
-					#create thumbnail folder if it does not exist yet:
-					if (!(-e "$itemroot/../thumbs/$item_folder/."))
+					# for each file that starts with a letter and ends with .jpg, .png or .gif
+					if ( ((substr($imagefilename, -4) eq (".jpg")) or (substr($imagefilename, -4) eq (".png")) or (substr($imagefilename, -4) eq (".gif")))
+						and ($imagefilename =~ m/^\w(\w|\.)+$/) )
 					{
-						$cmd = "mkdir -p \"$itemroot/../thumbs/$item_folder\"";
-						my @mkdirerror = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
-						if ($?) {print "<pre>@mkdirerror</pre> <br>\n";print '<font color="red">Careful here: Creating the thumbnail folder for $imagefilename has not worked! Read the gray screen output to find out why.</font>';};
-					}
+						my $thumbnailfile = "$itemroot/../thumbs/$item_folder/$imagefilename";
 
-					# generate thumbnail if it does not exist yet
-					if (!(-e $thumbnailfile))
-					{
-						#`"mkdir \"$itemroot/../thumbs/$item_folder\""`;
-						$cmd = "convert \"$itemroot/$item_folder/$imagefilename\" -resize x$thumbnailresolution \"$thumbnailfile\"";
-						my @outputlines = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
+						#create thumbnail folder if it does not exist yet:
+						if (!(-e "$itemroot/../thumbs/$item_folder/."))
+						{
+							$cmd = "mkdir -p \"$itemroot/../thumbs/$item_folder\"";
+							my @mkdirerror = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
+							if ($?) {print OUTKFILE "<pre>@mkdirerror</pre> <br>\n";print OUTKFILE '<font color="red">Careful here: Creating the thumbnail folder for $imagefilename has not worked! Read the gray screen output to find out why.</font>';};
+						}
+
+						# generate thumbnail if it does not exist yet
+						if (!(-e $thumbnailfile))
+						{
+							#`"mkdir \"$itemroot/../thumbs/$item_folder\""`;
+							$cmd = "convert \"$itemroot/$item_folder/$imagefilename\" -resize x$thumbnailresolution \"$thumbnailfile\"";
+							my @outputlines = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
 						
-						if ($?) {print "<pre>@outputlines</pre> <br>\n";print '<font color="red">Careful here: Converting the image has not worked! Read the gray screen output to find out why.</font>';};
-					}
-					else
-					{
-						#print "thumbnail of $imagefilename already there.<br>\n"
-					}
+							if ($?) {print OUTKFILE "<pre>@outputlines</pre> <br>\n";print OUTKFILE '<font color="red">Careful here: Converting the image has not worked! Read the gray screen output to find out why.</font>';};
+						}
+						else
+						{
+							#print OUTKFILE "thumbnail of $imagefilename already there.<br>\n"
+						}
 					
-					# link to thumb				
-					print "<a href='$itemfolderlink#$imagefilename'><img border=0 src='thumbs/$item_folder/$imagefilename'></a> ";
+						# link to thumb				
+						print OUTKFILE "<a href='$itemfolderlink#$imagefilename'><img border=0 src='thumbs/$item_folder/$imagefilename'></a> ";
+					}
 				}
 			}
-		  }
-		  else
-		  {
-			print "<a href='repairmenu.pl?item_folder=$item_folder'><font color='red'>Alert: The photo folder of this item was not found! Was it renamed or deleted via WebDAV? Click to repair!</font></a>";
-		  }
-
-			#print "@allitemsfiles";
-			print "</td>\n";
-			print "<td>$room_name $item_shelf $item_currentuser</td>\n";
-			print "<td>$item_serialnumber</td>\n";
-			print "<td>";
-			if ($item_state eq "Functional")
-				{print "<img src='/style/lights_green.png' alt='$item_state'>";}
-			elsif ($item_state eq "Destroyed")
-				{print "<img src='/style/lights_red.png' alt='$item_state'>";}
 			else
-				{print "<img src='/style/lights_yellow.png' alt='$item_state'>";}
-			print "</td>\n";
+			{
+				print OUTKFILE "<a href='repairmenu.pl?item_folder=$item_folder'><font color='red'>Alert: The photo folder of this item was not found! Was it renamed or deleted via WebDAV? Click to repair!</font></a>";
+			}
+
+			#print OUTKFILE "@allitemsfiles";
+			print OUTKFILE "</td>\n";
+
+			# Location & User:
+			my $colon = "";
+			my $usedbystring = "";
+			if ($room_name ne "" && $item_shelf ne "") {$colon = ":"}
+			if ($item_currentuser ne "") {$usedbystring = ", used by "};
+			print OUTKFILE "<td width='40%'>$room_name$colon $item_shelf$usedbystring $item_currentuser</td>\n";
 			
 			# wiki URL:
 			if (length($item_wikiurl) > 0 )
 			{
-				print "<td ALIGN='middle'><a href='$item_wikiurl'> visit</a></td>\n";
+				print OUTKFILE "<td ALIGN='middle'><a href='$item_wikiurl'> visit</a></td>\n";
 			}
 			else
 			{
-				print "<td ALIGN='middle'></td>\n";
+				print OUTKFILE "<td ALIGN='middle'></td>\n";
 			}
-			print "</tr>\n";
+			
+			# State:			
+			print OUTKFILE "<td>";
+			if ($item_state eq "Functional")
+				{print OUTKFILE "<img src='/style/lights_green.png' alt='$item_state'>";}
+			elsif ($item_state eq "Destroyed")
+				{print OUTKFILE "<img src='/style/lights_red.png' alt='$item_state'>";}
+			else
+				{print OUTKFILE "<img src='/style/lights_yellow.png' alt='$item_state'>";}
+			print OUTKFILE "</td>\n";
+			
+			print OUTKFILE "</tr>\n";
 
 			# for alternating table row colours:
 			if ($tablerowbgcolor eq "#d1e8f9")
@@ -313,7 +347,7 @@ foreach my $categoryrowref (@{$categoryrowsref})
 				$tablerowbgcolor = "#d1e8f9"
 			}
 		}
-		print "</table>";
+		print OUTKFILE "</table>";
 	} # closing the if items>0 clause
 } # closing category enumeration
 
@@ -325,22 +359,40 @@ $dbh->disconnect();
 ########################
 ### New Item Button
 ########################
-print "<br>";
-print "<input type='button' value='Create New Item' onclick='document.location.href=\"createitem.pl\"'>";
-print " ... or you can make a new folder in the shared file system if you have mounted the network drive! See above.";
-print "<br>";
+print OUTKFILE "<br>";
+print OUTKFILE "<input type='button' value='Create New Item' onclick='document.location.href=\"createitem.pl\"'>";
+print OUTKFILE " ... or you can make a new folder in the shared file system if you have mounted the network drive! See above.";
+print OUTKFILE "<br>";
+
+print OUTKFILE "<br>";
+print OUTKFILE "<a href='historylist.pl'> Show complete history of all changes! </a> <br>\n";
 
 
-
-print "<br>";
-print "<a href='/?thumbnailresolution=30' method=\"post\"> Rebuild thumbnails at 30 pixels </a> <br>\n";
-print "<a href='/?thumbnailresolution=48'> Rebuild thumbnails at 48 pixels </a> <br>\n";
-print "<a href='/?thumbnailresolution=100'> Rebuild thumbnails at 100 pixels </a> <br>\n";
-print "<br>";
-print "<br>";
+print OUTKFILE "<br>";
+print OUTKFILE "<a href='/?thumbnailresolution=30' method=\"post\"> Rebuild thumbnails at 30 pixels </a> <br>\n";
+print OUTKFILE "<a href='/?thumbnailresolution=48'> Rebuild thumbnails at 48 pixels </a> <br>\n";
+print OUTKFILE "<a href='/?thumbnailresolution=100'> Rebuild thumbnails at 100 pixels </a> <br>\n";
+print OUTKFILE "<br>";
+print OUTKFILE "<br>";
 
 my $timestring = scalar( localtime(time));
-print "This page was generated at $timestring .<br>\n";
+print OUTKFILE "This page was generated at $timestring .<br>\n";
 
-print "</body></html>\n";
+print OUTKFILE "</body></html>\n";
 
+close(OUTKFILE);
+
+# This page needs to also send something to the server. Make a page that redirects!
+print "Content-type: text/html\n\n";
+print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
+print "<html><head><title>LabTracker - Main Menu</title>";
+print "<meta HTTP-EQUIV=\"REFRESH\" content=\"0; url=/$mainmenucache#item$cgi_item_uniqueID\">";                                                                              
+print "</head>";
+#print "<body>";
+#print "<h1>here now:</h1>";
+#print OUTKFILE "out: $ENV{QUERY_STRING}";
+#foreach my $key (keys %ENV) {#                                                                                                                             
+#       print "$key --> $ENV{$key}<br>";                                                                                                             
+#}                                     
+#print "</body>";
+print "</html>";

@@ -15,14 +15,15 @@ my $dbh = DBI->connect("dbi:SQLite:dbname=../db/iteminfos.db","","",$dbargs);
 
 my $itemroot = "/var/www/inventory/items";
 
-my $item_folder = $cgi->param('itemfolder');
+my $cgi_item_folder = $cgi->param('itemfolder');
+my $cgi_item_uniqueID = $cgi->param('itemID');
 
 my $cmd;
 my $cmdoutput;
 
 print "Content-type: text/html\n\n";
 print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
-print "<html><head><title>ISIP Inventory Webapplication</title></head><body bgcolor='#E0E0E0'>\n";
+print "<html><head><title>LabTracker - Item Menu</title></head><body bgcolor='#E0E0E0'>\n";
 print "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
 #print "<h1>ISIP Inventory: Item Menu</h1>\n";
 
@@ -148,7 +149,16 @@ print "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
 
 #my $thisfolder=$itemfolder;
 
-my @itemrow = $dbh->selectrow_array("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber,item_workgroup,item_responsibleperson,item_uniqueID  FROM items WHERE item_folder='$item_folder';");
+my $wherecondition;
+if ($cgi_item_uniqueID eq "")
+{
+    $wherecondition = "WHERE item_folder='$cgi_item_folder'";
+}
+else
+{
+    $wherecondition = "WHERE item_uniqueID='$cgi_item_uniqueID'";
+}
+my @itemrow = $dbh->selectrow_array("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber,item_workgroup,item_responsibleperson,item_uniqueID  FROM items  $wherecondition ;");
 die("Only one element was returned while asking the database for a complete row of item data! Please check SQL query (to changed schema?) and update implementation!") unless (@itemrow > 1);
 
 my $item_folder = @itemrow[0];
@@ -169,7 +179,7 @@ my $item_workgroup = @itemrow[14];
 my $item_responsibleperson = @itemrow[15];
 my $item_uniqueID = @itemrow[16];
 
-print "<h1>ISIP Inventory: $item_name</h1>";
+print "<h1>$item_name</h1>";
 
 # see sub-procedure at end of file.
 showPhotos();
@@ -181,17 +191,27 @@ my $fieldhelpfontsize = 1;
 print "<form action='/folderoperations.pl' method='get'>\n";
 
 # Save button:
-print "    <input type='submit' value='Save'>";
-print "	<input type='button' value='Cancel' onclick='document.location.href=\"/#$item_folder\"'>";
+print "    <br><input type='submit' value='Save & Back'>";
+print "        <input type='submit' value='Save & Stay'>";
+print "    <a href=\"/mainmenu.pl?itemID=$item_uniqueID\">Cancel</a> ";
+#print "	<input type='button' value='Cancel' onclick='document.location.href=\"/#$item_folder\"'>";
 print "<br><br>";
 
 
 print "Things that don't change:";
 print "<TABLE BORDER=1 rules='rows' CELLSPACING=0 CELLPADDING=0 width='100%' BORDERCOLOR='darkgrey'>";
 
-print "<tr><th bgcolor='#6b7f93'><font color='white'>Item Name</font></th><td bgcolor='white'><input type='text' name='item_name' value='$item_name'><font size='$fieldhelpfontsize'>(unix folder: \"$item_folder\", based on \"$item_basedon\")</font> ";
-print "<input type='button' value='Rename unix folder' onclick='document.location.href=\"/style/notimplemented.html\"'>";
-print "<input type='button' value='Change linked folder' onclick='document.location.href=\"/style/notimplemented.html\"' disabled> ";
+print "<tr><th bgcolor='#6b7f93'><font color='white'>Item Name</font></th><td bgcolor='white'><input type='text' name='item_name' value='$item_name'>";
+if ($item_basedon eq "")
+{
+print "<font size='$fieldhelpfontsize'> (unix folder: \"$item_folder\", linked to no other item's folder)</font> ";
+}
+else
+{
+print "<font size='$fieldhelpfontsize'> (unix folder: \"$item_folder\", based on item <a href='itemmenu.pl?itemID=$item_basedon'>$item_basedon</a>)</font> ";
+}
+#print "<input type='button' value='Rename unix folder' onclick='document.location.href=\"/style/notimplemented.html\"' disabled>";
+print "<input type='button' value='Change linked item' onclick='document.location.href=\"/style/notimplemented.html\"' disabled> ";
 print "</td></tr>";
 
 print "<tr><th bgcolor='#6b7f93'><font color='white'>Version / Model</font></th><td bgcolor='white'><input type='text' name='item_versionnumber' value='$item_versionnumber'><font size='$fieldhelpfontsize'> (e.g. Board Revision or software version or ISBN or DOI)</font></td></tr>";
@@ -216,7 +236,7 @@ print "<tr><th bgcolor='#6b7f93'><font color='white'>ISIP Wiki URL (<a href='$it
 print "<tr><th bgcolor='#6b7f93'><font color='white'>Inventory Number</font></th><td bgcolor='white'><input type='text' name='item_inventorynumber' value='$item_inventorynumber'><font size='$fieldhelpfontsize'> (the official inventory number assigned by the university) </font></td></tr>";
 print "<tr><th bgcolor='#6b7f93'><font color='white'>Invoice Date</font></th><td bgcolor='white'><input type='text' name='item_invoicedate' value='$item_invoicedate'><font size='$fieldhelpfontsize'> (german: Rechnungsdatum. Might be important for repairs!) </font></td></tr>";
 # Workgroup & Who to ask:
-print "<tr><th bgcolor='#6b7f93'><font color='white'>Workgroup</font></th><td bgcolor='white'><select name='item_workgroup' size='1'>";
+print "<tr><th bgcolor='#6b7f93'><font color='white'>Workgroup & Owner</font></th><td bgcolor='white'><select name='item_workgroup' size='1'>";
 {
 my $isselected;
 if ($item_workgroup eq "Uli") {$isselected = "selected";} else {$isselected = "";}
@@ -224,7 +244,7 @@ print "<option value='Uli' $isselected>Uli</option>";
 if ($item_workgroup eq "Alfred") {$isselected = "selected";} else {$isselected = "";}
 print "<option value='Alfred' $isselected>Alfred</option>";
 }
-print "</select> Who to ask about it: <input type='text' name='item_responsibleperson' value='$item_responsibleperson'><font size='$fieldhelpfontsize'> (member of ISIP staff) </font></td></tr>";
+print "</select> <b>Who to Ask about it:</b><input type='text' size=15 name='item_responsibleperson' value='$item_responsibleperson'><font size='$fieldhelpfontsize'> (member of ISIP staff) </font></td></tr>";
 print "</table>";
 
 print "<br>Things that change:";
@@ -265,35 +285,38 @@ print "</table>";
 
 print "    <input type='hidden' name='item_folder' value='$item_folder'>\n";
 print "    <input type='hidden' name='item_basedon' value='$item_basedon'>\n";
+print "    <input type='hidden' name='itemID' value='$item_uniqueID'>\n";
 print "    <input type='hidden' name='itemaction' value='editsave'>\n";
 #print "    <input type='hidden' name='item_category' value='$item_category'>\n";
 
 
 # Save button:
-print "    <br><input type='submit' value='Save'>";
-print "    <a href=\"/#$item_folder\">Cancel</a> ";
+print "    <br><input type='submit' value='Save & Back'>";
+print "        <input type='submit' value='Save & Stay'>";
+print "    <a href=\"/mainmenu.pl?itemID=$item_uniqueID\">Cancel</a> ";
 #print "	<input type='button' value='Cancel' onclick='document.location.href=\"/#$item_folder\"'>";
 # End of form
 print "</form>";
 
+
 # History:
 print "<u>Item History:</u><br>";
-print "<table border=1>";
-my $historystatement = $dbh->prepare("SELECT history_itemuniqueid,history_operation,history_operationtime,history_xmlblob,hop_nicename FROM history LEFT JOIN history_operations ON history_operation=hop_operation WHERE history_itemuniqueid = ? ;");
-if ($historystatement->err()) { die "Cannot prepare statement: $DBI::errstr\n"; }                                                                                                                                     
-$historystatement->execute($item_uniqueID);
-while ( (my $history_itemuniqueid, my $history_operation, my $history_operationtime, my $history_xmlblob, my $historyop_nicename)  = $historystatement->fetchrow())
-{
-    my $timestring = scalar( localtime($history_operationtime));
-    print "<tr><th nowrap>$timestring</th><th nowrap title=\"$history_operation\">$historyop_nicename</th> $history_xmlblob </tr>";
-}
-$historystatement->finish();
-print "</table>";
+print "<iframe src=\"historylist.pl?itemID=$item_uniqueID\" name=\"historyiframe\" width=\"100%\" height=\"100\" frameborder=0 marginheight=3 marginwidth=0>";                                                                      
+print "Your browser does not support iframes! Please just visit <A HREF=\"historylist.pl\">this page</A> instead.";                            
+print "</iframe>\n";
+print "<br>\n\n";
+
+
 
 # Delete Button:
 print "<br>\n";
 print "<input type='button' value='Delete this item...' onclick='document.location.href=\"/style/notimplemented.html\"'>";
 
+
+# WebDAV hint:
+print "<br>\n";
+print "<br>\n";
+print "The WebDAV folder for uploading files for this item is currently:<br><a href='https://inventory.isip.uni-luebeck.de/items/$item_folder/'' >https://inventory.isip.uni-luebeck.de/items/$item_folder/</a>"; 
 
 print "</body></html>\n";
 
@@ -377,12 +400,15 @@ sub showPhotos
     #	print "<h3>Other files:</h3>";
 	foreach my $otherfilename (@otheritemfilenames)
 	{
-		print "<a href='items/$item_folder/$otherfilename'><font color='grey'>$otherfilename</font></a><br><br>\n";
+		#chomp ($otherfilename);
+		print "<a href='items/$item_folder/$otherfilename'><font color='grey'>$otherfilename</font></a><br>\n";
 	}
     }
     else
     {
-	print "<font color='grey'>none.</font><br><br>";
+	print "<font color='grey'>none.</font><br>\n";
     }
+    
+    print "<br>\n";
 
 }

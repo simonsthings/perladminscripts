@@ -65,16 +65,13 @@
             AuthLDAPURL ldaps://shannon/dc=isip,dc=uni-luebeck,dc=de?uid                                                                                             
             Require valid-user                                                                                                                                       
 	</Location>
-									
-
-
-	Alias /thumbs /var/www/inventory/thumbs
-	Alias /style /var/www/inventory/style
-
-	# Verzeichnis freigeben
-	# auﬂerhalb des DocumentRoot
+	
+	# Verzeichnis freigeben auﬂerhalb des DocumentRoot
 	Alias /items /var/www/inventory/items
 	Alias /images /var/www/inventory/items
+	Alias /thumbs /var/www/inventory/thumbs
+	Alias /style /var/www/inventory/style
+	
 	# Diese Verzeichnisfreigabe konfigurieren
 	<Location /items>
 		# WebDAV einschalten
@@ -186,6 +183,8 @@
 	ScriptAlias /repairmenu.pl /var/www/inventory/code/repairmenu.pl
 	ScriptAlias /folderoperations.pl /var/www/inventory/code/folderoperations.pl
 	ScriptAlias /createitem.pl /var/www/inventory/code/createitem.pl
+	ScriptAlias /historylist.pl /var/www/inventory/code/historylist.pl
+	#ScriptAlias /updatemain.pl /var/www/inventory/code/updatemain.pl
 	ScriptAlias /mainmenu.pl /var/www/inventory/code/mainmenu.pl
 	#ScriptAlias / /var/www/inventory/code/mainmenu.pl
 	

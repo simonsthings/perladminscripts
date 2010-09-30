@@ -67,13 +67,13 @@ my $dbid_item_responsibleperson = @itemrow[15];
 
 print "Content-type: text/html\n\n";
 print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
-print "<html><head><title>ISIP Inventory Webapplication</title></head><body bgcolor='#E0E0E0'>\n";
+print "<html><head><title>LabTracker - Operations Feedback</title></head><body bgcolor='#E0E0E0'>\n";
 print "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
-print "apache user: $apacheuser<br>\n";
- foreach my $key (keys %ENV) {
-               print "$key --> $ENV{$key}<br>";
-	            }
-print "User name: $ENV{'REMOTE_USER'}";
+#print "apache user: $apacheuser<br>\n";
+# foreach my $key (keys %ENV) {#
+#               print "$key --> $ENV{$key}<br>";
+#	            }
+#print "User name: $ENV{'REMOTE_USER'}";
 
 
 # TODO change this to use uniqueIDs that have previously been found. So we can add the uniqueID of the other folder!
@@ -88,7 +88,7 @@ sub saveHistory
     FROM items LEFT JOIN rooms ON items.item_room=rooms.room_id LEFT JOIN categories ON items.item_category=categories.category_id 
     WHERE items.item_folder='$givenItemFolder';");
     my $item_folderDB = @itemrow[0];
-    my $item_linkedfolder = @itemrow[1];
+    my $item_basedonID = @itemrow[1];
     my $item_name = @itemrow[2];
     my $item_description = @itemrow[3];
     my $item_state = @itemrow[4];
@@ -127,11 +127,11 @@ sub saveHistory
 	<td nowrap title=\"State\">$item_state</td> \
 	<td nowrap title=\"Current User\">$item_currentuser</td> \
 	<td nowrap title=\"Responsible Person\">$item_responsibleperson</td> \ 
- 	<td nowrap title=\"-\"> </td> \
+ 	<td nowrap title=\"-\">-</td> \
 	<td nowrap title=\"Item Name\">$item_name</td> \
 	<td nowrap title=\"Unix Folder\">$item_folderDB</td> \
 	<td nowrap title=\"Description\">$item_description</td> \
-	<td nowrap title=\"LinkedFolder\">$item_linkedfolder</td> \
+	<td nowrap title=\"LinkedItem\">$item_basedonID</td> \
 	<td nowrap title=\"Wiki URL\">$item_wikiurl</td> \
 	<td nowrap title=\"Invoice Date\">$item_invoicedate</td> \
 	<td nowrap title=\"University Inventory #\">$item_inventorynumber</td> \
@@ -143,7 +143,7 @@ sub saveHistory
 	<td nowrap title=\"Room ID\">$item_room</td> 
 	<td nowrap title=\"Category ID\">$item_category</td>";
 
-    print "<table border=1><tr>$xmlblob</tr></table>";
+    print "<table border=0><tr>$xmlblob</tr></table>";
     	
     my $time = time();
     my $ar =  $dbh->do("INSERT INTO history (history_itemuniqueid,history_operation,history_operationtime,history_xmlblob) VALUES ('$item_uniqueID','$operation_string','$time','$xmlblob')"); 
@@ -300,8 +300,8 @@ elsif ($itemaction eq "create")
 elsif ($itemaction eq "editsave")                                                                                                                                                  
 {                                                                                                                                                                             
                                     
-    print "<h1>ISIP Inventory: Saving Item...</h1>\n";
-    my $rows_affected = $dbh->do("UPDATE items SET item_linkedfolder = '$cgi_item_linkedfolder',item_name='$cgi_item_name',item_description='$cgi_item_description',item_state='$cgi_item_state',item_wikiurl='$cgi_item_wikiurl',item_room='$cgi_item_room',item_shelf='$cgi_item_shelf',item_currentuser='$cgi_item_currentuser',item_invoicedate='$cgi_item_invoicedate',item_uniinvnum='$cgi_item_inventorynumber',item_category='$cgi_item_category',item_versionnumber='$cgi_item_versionnumber',item_serialnumber='$cgi_item_serialnumber',item_workgroup='$cgi_item_workgroup',item_responsibleperson='$cgi_item_responsibleperson' WHERE item_folder = '$cgi_item_folder' ;");    
+    print "<h1>Saving Item '$cgi_item_name'...</h1>\n";
+    my $rows_affected = $dbh->do("UPDATE items SET item_linkedfolder = '$cgi_item_linkedfolder',item_name='$cgi_item_name',item_description='$cgi_item_description',item_state='$cgi_item_state',item_wikiurl='$cgi_item_wikiurl',item_room='$cgi_item_room',item_shelf='$cgi_item_shelf',item_currentuser='$cgi_item_currentuser',item_invoicedate='$cgi_item_invoicedate',item_uniinvnum='$cgi_item_inventorynumber',item_category='$cgi_item_category',item_versionnumber='$cgi_item_versionnumber',item_serialnumber='$cgi_item_serialnumber',item_workgroup='$cgi_item_workgroup',item_responsibleperson='$cgi_item_responsibleperson' WHERE item_uniqueID = '$cgi_item_uniqueID' ;");    
     
     # Save History after change:                                                                                                                                          
     saveHistory($cgi_item_folder,'EDIT_NORMAL');
@@ -318,8 +318,8 @@ elsif ($itemaction eq "editsave")
     }
 
     print "<br>saved.<br><br>";
-    print "<a href='/itemmenu.pl?itemfolder=$cgi_item_folder'> back to item </a> <br>\n";
-    print "<a href='/#$cgi_item_folder'> Redirecting to Main Menu ... </a> <br>\n";
+    print "<a href='/itemmenu.pl?itemID=$cgi_item_uniqueID'> Back to item </a> <br>\n";
+#    print "<a href='/mainmenu.pl?itemID=$cgi_item_uniqueID'> Redirecting to Main Menu ... </a> <br>\n";
                                                                                                                                           
     
 }
@@ -332,9 +332,9 @@ else
 
 
 
-print "<br>\n";
-print "<br>\n";
-print "	<a href='/#$dbid_item_folder'>Back to Main List</a>";
+#print "<br>\n";
+#print "<br>\n";
+print "	<a href='/mainmenu.pl?itemID=$cgi_item_uniqueID'>Back to Main List</a>";
 
 print "</body></html>\n";
 

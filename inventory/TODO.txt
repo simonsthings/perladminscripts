@@ -31,30 +31,38 @@ O I want to make a copy of ComboBox!
 
 - History of things that change: Location, State, User (, useremail, lentby) OK
 
+- Make History nicer:
+-- make a naming table for history action nice names OK
+-- make history an iFrame (i in i possible?) so that the main window doesn't always have those ugly scrollbars OK
+-- while history is made into separate perl script, also make behaviour for iFrame (itemID provided) and also stand-alone ("recent activity"!) modes. OK
+
 (mostly) DONE!
 ----------------------------------------------------------------------------------------
 TODO:
 
-- history of deleted items: use IDs to know what happened to it!
+- history of deleted items: use IDs to know what happened to it! 
 ON THE WAY: repairfolder option 1, create_mmauto works. 
 MISSING: other folderoperations!
+
+- Continue changing to uniqueIDs instead of foldernames. Then folders can be dynamically renamed to always be similar to the current item name.
 
 - Upload Files
 On ItemMenu page...
 
-- Rename item folder
-- Rename folder each time the item_name is changed! Base loosely on name (without digits or special chars) so people can find the folder intuitively!
+- Improve usability of Item Creation.
+-- Let user give name
+-- Allow creation from within itemmenu.pl
+--- checkbox "X New , X Copy, (X Link)"
+
+- Rename item folder manually??
+- Rename item folder automatically each time the item_name is changed! Base loosely on name (without digits or special chars) so people can find the folder intuitively!
 
 - POTENTIAL BUG: Figure converting code exists twice: Different convert rules. Solution: Separate .pl file?
 
 - Make Itemmenu.pl use the item IDs instead of folders. This would slightly increase robustness to simultaneous edits, especially folder renames during another edit!
+-- Mainmenu #-names OK.
 
 - Place link to webapp in each registered item folder?? And snapshot (write-only) of that item? "iteminfo.txt" with write-only warning and info?
-
-- Make History nicer:
--- make a naming table for history action nice names
--- make history an iFrame (i in i possible?) so that the main window doesn't always have those ugly scrollbars
-
 
 - Add user photo/info feature?
 -- "Student X ist working with hardware Y,Z and B"
