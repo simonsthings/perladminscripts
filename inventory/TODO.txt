@@ -1,0 +1,65 @@
+Features:
+
+- Format Item page OK
+
+- Create new Item
+"
+Copy from existing Item? 
+Link to Existing Item? 
+Create new from scratch: Please enter a name for thte new item: TextInput 
+ ...Submit to ItemMenu
+"
+
+- handle vanishing folders! OK
+1: Ask to delete item   2: Choose new folder from existing folders  3: Create new folder   4: steal folder from different item
+"
+Repair missing folders: So, what happened to it? Do you know?
+O I renamed it to: ComboBox. Only folders of new (uncategorised) items are shown here. The other item will be deleted.
+O I deleted it by accident and want to create a new empty folder!
+O I deleted it on purpose and want to delete this item from the database! Only possible for uncategorised items! An email will be sent to the system administrator.
+O I want to make a copy of ComboBox!
+..O I want to link this item to the folder ComboBox! A new empty folder for this item will still be created.
+"
+
+- Display only some categories in main menu. HTML GET values is enough there.
+
+- ignore readme.txt directly in items folder OK
+
+-- Ausgeliehen "VON", "AN"  (now already in schema file!) -> changed to "responsibleperson"(VON) and "currentuser/email"(AN)
+-- Workgroup: Neuroengineering Group, Audio- Signalprocessing Group OK
+--- merge saveitem.pl into folderoperations.pl OK
+
+- History of things that change: Location, State, User (, useremail, lentby) OK
+
+(mostly) DONE!
+----------------------------------------------------------------------------------------
+TODO:
+
+- history of deleted items: use IDs to know what happened to it!
+ON THE WAY: repairfolder option 1, create_mmauto works. 
+MISSING: other folderoperations!
+
+- Upload Files
+On ItemMenu page...
+
+- Rename item folder
+- Rename folder each time the item_name is changed! Base loosely on name (without digits or special chars) so people can find the folder intuitively!
+
+- POTENTIAL BUG: Figure converting code exists twice: Different convert rules. Solution: Separate .pl file?
+
+- Make Itemmenu.pl use the item IDs instead of folders. This would slightly increase robustness to simultaneous edits, especially folder renames during another edit!
+
+- Place link to webapp in each registered item folder?? And snapshot (write-only) of that item? "iteminfo.txt" with write-only warning and info?
+
+- Make History nicer:
+-- make a naming table for history action nice names
+-- make history an iFrame (i in i possible?) so that the main window doesn't always have those ugly scrollbars
+
+
+- Add user photo/info feature?
+-- "Student X ist working with hardware Y,Z and B"
+-- "Staff member A knows about hardware I..U"
+-- add "edit users" button to Current User field..
+
+- Submit items/photos/files by email? How??
+

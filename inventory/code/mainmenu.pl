@@ -276,7 +276,7 @@ foreach my $categoryrowref (@{$categoryrowsref})
 		  }
 		  else
 		  {
-			print "<a href='repairfolder.pl?item_folder=$item_folder'><font color='red'>Alert: The photo folder of this item was not found! Was it renamed or deleted via WebDAV? Click to repair!</font></a>";
+			print "<a href='repairmenu.pl?item_folder=$item_folder'><font color='red'>Alert: The photo folder of this item was not found! Was it renamed or deleted via WebDAV? Click to repair!</font></a>";
 		  }
 
 			#print "@allitemsfiles";

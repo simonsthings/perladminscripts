@@ -178,7 +178,7 @@ showPhotos();
 my $fieldhelpfontsize = 1;
 # Dann kommt eine HTML-Tabelle, die die ganzen Inventargegenstände dieser Kategorie
 # enthält. Erst kommen die Überschriften, ...
-print "<form action='/saveitem.pl' method='get'>\n";
+print "<form action='/folderoperations.pl' method='get'>\n";
 
 # Save button:
 print "    <input type='submit' value='Save'>";
@@ -265,25 +265,27 @@ print "</table>";
 
 print "    <input type='hidden' name='item_folder' value='$item_folder'>\n";
 print "    <input type='hidden' name='item_basedon' value='$item_basedon'>\n";
+print "    <input type='hidden' name='itemaction' value='editsave'>\n";
 #print "    <input type='hidden' name='item_category' value='$item_category'>\n";
 
 
 # Save button:
 print "    <br><input type='submit' value='Save'>";
-print "	<input type='button' value='Cancel' onclick='document.location.href=\"/#$item_folder\"'>";
+print "    <a href=\"/#$item_folder\">Cancel</a> ";
+#print "	<input type='button' value='Cancel' onclick='document.location.href=\"/#$item_folder\"'>";
 # End of form
 print "</form>";
 
 # History:
 print "<u>Item History:</u><br>";
 print "<table border=1>";
-my $historystatement = $dbh->prepare("SELECT history_itemuniqueid,history_operation,history_operationtime,history_xmlblob FROM history WHERE history_itemuniqueid = ? ;");
+my $historystatement = $dbh->prepare("SELECT history_itemuniqueid,history_operation,history_operationtime,history_xmlblob,hop_nicename FROM history LEFT JOIN history_operations ON history_operation=hop_operation WHERE history_itemuniqueid = ? ;");
 if ($historystatement->err()) { die "Cannot prepare statement: $DBI::errstr\n"; }                                                                                                                                     
 $historystatement->execute($item_uniqueID);
-while ( (my $history_itemuniqueid, my $history_operation, my $history_operationtime, my $history_xmlblob)  = $historystatement->fetchrow())
+while ( (my $history_itemuniqueid, my $history_operation, my $history_operationtime, my $history_xmlblob, my $historyop_nicename)  = $historystatement->fetchrow())
 {
     my $timestring = scalar( localtime($history_operationtime));
-    print "<tr><th nowrap>$timestring</th><th nowrap>$history_operation</th> $history_xmlblob </tr>";
+    print "<tr><th nowrap>$timestring</th><th nowrap title=\"$history_operation\">$historyop_nicename</th> $history_xmlblob </tr>";
 }
 $historystatement->finish();
 print "</table>";

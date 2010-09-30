@@ -39,6 +39,11 @@ create table history (
 	history_xmlblob		text	
 );
 
+create table history_operations (
+	hop_operation		text,
+	hop_nicename		text
+);
+
 insert into rooms (room_id,room_number,room_floor,room_building,room_name) values (1,'27','1. Stock','Haus 64','Biosignal Lab');                        
 insert into rooms (room_id,room_number,room_floor,room_building,room_name) values (2,'XX','1. Stock','Haus 64','Software Lab');                         
 insert into rooms (room_id,room_number,room_floor,room_building,room_name) values (3,'XX','1. Stock','Haus 64','Audio Lab');                            
@@ -64,3 +69,8 @@ insert into categories (category_id,category_name) values (2,'Office Hardware');
 insert into categories (category_id,category_name) values (3,'Software');
 insert into categories (category_id,category_name) values (4,'Books & Papers'); 
 
+INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('CREATE_MMAUTO','Created');
+INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('CREATE_MANUAL','Created');
+INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('REPAIR_FOLDERRENAMED','Repaired');
+INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('EDIT_NORMAL','Edited');
+INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('DELETED_REPAIROTHER','Deleted');
