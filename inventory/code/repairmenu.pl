@@ -17,37 +17,41 @@ my $itemroot = "/var/www/inventory/items";
 my $cmd;
 my $cmdoutput;
 
-my $item_folder = $cgi->param('item_folder');
+my $cgi_item_uniqueID = $cgi->param('itemID');
 
-my @itemrow = $dbh->selectrow_array("SELECT item_name FROM items WHERE item_folder='$item_folder';");
+my @itemrow = $dbh->selectrow_array("SELECT item_name,item_folder FROM items WHERE item_uniqueID='$cgi_item_uniqueID';");
 my $item_name = @itemrow[0];
+my $item_folder = @itemrow[1];
 
 print "Content-type: text/html\n\n";
 print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
 print "<html><head><title>ISIP Inventory Webapplication</title></head>";
 print "<body bgcolor='#E0E0E0'>\n";
 print "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
-print "<h1>ISIP Inventory: Repair missing folder...</h1>\n";
+print "<h1>Repair missing folder...</h1>\n";
 print "The photo folder \"$item_folder\" for item <i>$item_name</i> was not found.";
 
 
 # Action A ComboBox: New Items
-my $selnewitems = $dbh->prepare("SELECT item_name,item_folder FROM items WHERE item_category=0 ;");
+my $selnewitems = $dbh->prepare("SELECT item_name,item_folder,item_uniqueID FROM items WHERE item_category=0 ;");
 if ($selnewitems->err()) { die "$DBI::errstr\n"; }
 $selnewitems->execute();
-my $actionAComboboxNewItems = "<select name='actionA_folder' size='1'>\n";
+my $actionAComboboxNewItems = "<select name='actionA_itemID' size='1'>\n";
 while(my @row = $selnewitems->fetchrow_array())
 {
+    if (@row[2] != $cgi_item_uniqueID)
+    {
 	if (@row[1] eq @row[0])
-	{$actionAComboboxNewItems .= "<option value=@row[1]>@row[1]</option>\n";}
+	{$actionAComboboxNewItems .= "<option value=@row[2]>@row[1]</option>\n";}
 	else
-	{$actionAComboboxNewItems .= "<option value=@row[1]>@row[1] (\"@row[0]\")</option>\n";}
+	{$actionAComboboxNewItems .= "<option value=@row[2]>@row[1] (\"@row[0]\")</option>\n";}
+    }
 }
 $actionAComboboxNewItems .= "</select>";
 
 
 # Action D ComboBox: All Items
-my $selallitems = $dbh->prepare("SELECT item_name,item_folder FROM items ;");
+my $selallitems = $dbh->prepare("SELECT item_name,item_folder,item_uniqueID FROM items ;");
 if ($selallitems->err()) { die "$DBI::errstr\n"; }
 $selallitems->execute();
 my $actionCComboboxAllItems = "<select name='actionC_folder' size='1'>\n";
@@ -61,7 +65,7 @@ while(my @row = $selallitems->fetchrow_array())
 $actionCComboboxAllItems .= "</select>";
 
 # Action E ComboBox: All Items
-my $selallitems = $dbh->prepare("SELECT item_name,item_folder FROM items ;");
+my $selallitems = $dbh->prepare("SELECT item_name,item_folder,item_uniqueID FROM items ;");
 if ($selallitems->err()) { die "$DBI::errstr\n"; }
 $selallitems->execute();
 my $actionDComboboxAllItems = "<select disabled name='actionD_folder' size='1'>\n";
@@ -86,30 +90,12 @@ print "<tr><td bgcolor='#d1e8f9'><input type='radio' name='repairaction' value='
 print "<tr><td bgcolor='white'><input type='radio' name='repairaction' value='E' disabled> I deleted it on purpose and want to delete this item from the database! Only possible for uncategorised items! An email will be sent to the system administrator. </td></tr>";
 print "";
 print "";
-print "";
-print "";
-print "";
-print "";
-print "";
-print "";
-print "";
-print "";
-print "";
-print "";
-print "";
-print "";
-print "";
-print "";
-print "";
-print "";
-print "";
-print "";
 print "</table>";
-print "    <input type='hidden' name='itemfolder' value='$item_folder'>\n";
+print "    <input type='hidden' name='itemID' value='$cgi_item_uniqueID'>\n";
 print "    <input type='hidden' name='itemaction' value='repair'>\n";
 # Save button:
 print "    <br><input type='submit' value='Repair!'>";
-print "	<a href='/#$item_folder'>Cancel</a>";
+print "	<a href='/mainmenu.pl?itemID=$cgi_item_uniqueID'>Cancel</a>";
 # End of form
 print "</form>";
 

@@ -18,13 +18,14 @@ my $itemroot = "/var/www/inventory/items";
 my $itemaction = $cgi->param('itemaction');
 my $repairaction = $cgi->param('repairaction');
 my $createaction = $cgi->param('createaction');
-my $actionA_folder = $cgi->param('actionA_folder');
+my $deleteaction = $cgi->param('deleteaction');
+my $actionA_itemID = $cgi->param('actionA_itemID');
+my $actionB_itemID = $cgi->param('actionB_itemID');
 my $actionC_folder = $cgi->param('actionC_folder');
 my $actionD_folder = $cgi->param('actionD_folder');
 
-my $item_folder = $cgi->param('itemfolder');
+#my $item_folder = $cgi->param('itemfolder');
 my $cgi_item_uniqueID = $cgi->param('itemID');
-my $apacheuser = $cgi->param('user');
 
 my $cgi_item_folder           = $cgi->param('item_folder');                                                                                          
 my $cgi_item_linkedfolder     = $cgi->param('item_basedon');                                                                                         
@@ -46,7 +47,7 @@ my $cgi_item_responsibleperson = $cgi->param('item_responsibleperson');
 my $cmd;
 my $cmdoutput;
 
-my @itemrow = $dbh->selectrow_array("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber FROM items WHERE item_folder='$item_folder';");
+my @itemrow = $dbh->selectrow_array("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber FROM items WHERE item_uniqueID='$cgi_item_uniqueID';");
 my $dbid_item_folder = @itemrow[0];
 my $dbid_item_linkedfolder = @itemrow[1];
 my $dbid_item_name = @itemrow[2];
@@ -76,82 +77,6 @@ print "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
 #print "User name: $ENV{'REMOTE_USER'}";
 
 
-# TODO change this to use uniqueIDs that have previously been found. So we can add the uniqueID of the other folder!
-sub saveHistory
-{
-    my ($givenItemFolder,$operation_string) = @_;
-    
-    my @itemrow = $dbh->selectrow_array("SELECT 
-    item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber,item_workgroup,item_responsibleperson,item_uniqueID,
-    room_id,room_number,room_floor,room_building,room_name,
-    category_id,category_name
-    FROM items LEFT JOIN rooms ON items.item_room=rooms.room_id LEFT JOIN categories ON items.item_category=categories.category_id 
-    WHERE items.item_folder='$givenItemFolder';");
-    my $item_folderDB = @itemrow[0];
-    my $item_basedonID = @itemrow[1];
-    my $item_name = @itemrow[2];
-    my $item_description = @itemrow[3];
-    my $item_state = @itemrow[4];
-    my $item_wikiurl = @itemrow[5];
-    my $item_room = @itemrow[6];
-    my $item_shelf = @itemrow[7];
-    my $item_currentuser = @itemrow[8];
-    my $item_invoicedate = @itemrow[9];
-    my $item_inventorynumber = @itemrow[10];
-    my $item_category = @itemrow[11];
-    my $item_versionnumber = @itemrow[12];
-    my $item_serialnumber = @itemrow[13];
-    my $item_workgroup = @itemrow[14];
-    my $item_responsibleperson = @itemrow[15];
-    my $item_uniqueID = @itemrow[16];
-    my $room_id = @itemrow[17];
-    my $room_number = @itemrow[18];
-    my $room_floor = @itemrow[19];
-    my $room_building = @itemrow[20];
-    my $room_name = @itemrow[21];
-    my $category_id = @itemrow[22];
-    my $category_name = @itemrow[23];
-    
-    
-#    my $roomString = "Unspecified";
-#    if ($item_room != 0)
-#    {
-#	$roomString = $room_name;
-#    }    
-#    my $categoryString;
-
-    my $xmlblob = "\
-	<td nowrap title=\"LDAP User\">&nbsp; by <b>$ENV{'REMOTE_USER'}</b> ($ENV{'REMOTE_ADDR'}) &nbsp;</td>\
-	<td nowrap title=\"Room\">$room_name</td>\
-	<td nowrap title=\"Shelf\">$item_shelf</td> \
-	<td nowrap title=\"State\">$item_state</td> \
-	<td nowrap title=\"Current User\">$item_currentuser</td> \
-	<td nowrap title=\"Responsible Person\">$item_responsibleperson</td> \ 
- 	<td nowrap title=\"-\">-</td> \
-	<td nowrap title=\"Item Name\">$item_name</td> \
-	<td nowrap title=\"Unix Folder\">$item_folderDB</td> \
-	<td nowrap title=\"Description\">$item_description</td> \
-	<td nowrap title=\"LinkedItem\">$item_basedonID</td> \
-	<td nowrap title=\"Wiki URL\">$item_wikiurl</td> \
-	<td nowrap title=\"Invoice Date\">$item_invoicedate</td> \
-	<td nowrap title=\"University Inventory #\">$item_inventorynumber</td> \
-	<td nowrap title=\"Serial Number\">$item_serialnumber</td> \
-	<td nowrap title=\"Version\">$item_versionnumber</td> \
-	<td nowrap title=\"Workgroup\">$item_workgroup</td> \
-	<td nowrap title=\"Category\">$category_name</td> \
-	<td nowrap title=\"Item Unique ID\">$item_uniqueID</td> 
-	<td nowrap title=\"Room ID\">$item_room</td> 
-	<td nowrap title=\"Category ID\">$item_category</td>";
-
-    print "<table border=0><tr>$xmlblob</tr></table>";
-    	
-    my $time = time();
-    my $ar =  $dbh->do("INSERT INTO history (history_itemuniqueid,history_operation,history_operationtime,history_xmlblob) VALUES ('$item_uniqueID','$operation_string','$time','$xmlblob')"); 
-
-    # Do not commit here: Do it in calling code only when thte actual operation succeeded!
-    #$dbh->commit();
-}
-
 if ($itemaction eq "repair")
 {
 
@@ -159,17 +84,25 @@ if ($itemaction eq "repair")
     print "The folder of \"$dbid_item_name\" was not found.";
     if ($repairaction eq "A")
     {
-    	print "<h3>I renamed it to \"$actionA_folder\" and want to delete the existing item for that folder!</h3>\n";
-    	print "Deleting existing database entry for folder \"$actionA_folder\" and changing item $dbid_item_name from folder \"$dbid_item_folder\" to \"$actionA_folder\"...";
+        my @itemrow = $dbh->selectrow_array("SELECT item_name,item_folder FROM items WHERE item_uniqueID = '$actionA_itemID' ;");
+	my $other_item_name = @itemrow[0];
+	my $other_item_folder = @itemrow[1];
+	
+	# Safeguard against reloading of page:
+	if ($other_item_folder eq "") {print "ERROR: The given item that was supposed to be deleted doesn't exist anymore!"; return;}
+	if ($dbid_item_folder eq "") {print "ERROR: The given item that was supposed to be given a new folder doesn't exist anymore!"; return;}
+
+    	print "<h3>I renamed it to \"$other_item_folder\" and want to delete the existing (auto-created) item for that folder!</h3>\n";
+    	print "Deleting existing database entry for folder \"$other_item_folder\" and changing item $dbid_item_name from folder \"$dbid_item_folder\" to \"$other_item_folder\"...";
 
 	# Save history before deletion (if we weren't deleting, we would be saving AFTER edit):
-	saveHistory($actionA_folder,'DELETED_REPAIROTHER');
+	saveHistory($actionA_itemID,'DELETED_REPAIROTHER',$cgi_item_uniqueID);
 	
-    	$dbh->do("DELETE FROM items WHERE item_folder='$actionA_folder';");
-	my $rows_affected = $dbh->do("UPDATE items SET item_folder = '$actionA_folder' WHERE item_folder = '$dbid_item_folder' ;");
+    	$dbh->do("DELETE FROM items WHERE item_uniqueID='$actionA_itemID';"); # This either deletes one (if auto-item was already created) or no rows.
+	my $rows_affected = $dbh->do("UPDATE items SET item_folder = '$other_item_folder' WHERE item_uniqueID = '$cgi_item_uniqueID' ;");
 	
 	# Save History after change:
-	saveHistory($actionA_folder,'REPAIR_FOLDERRENAMED');
+	saveHistory($cgi_item_uniqueID,'REPAIR_FOLDERRENAMED',$actionA_itemID);
 
 	if ($rows_affected == 1)
 	{
@@ -184,8 +117,8 @@ if ($itemaction eq "repair")
 
 	print "OK!<br>\n";
 	print "<br>\n";
-	print "The item $dbid_item_name now points to the folder \"$actionA_folder\" instead of \"$dbid_item_folder\"!<br>\n";
-	print "You can now see the items photos again if \"$actionA_folder\" contains any.<br>\n";
+	print "The item $dbid_item_name now points to the folder \"$other_item_folder\" instead of \"$dbid_item_folder\"!<br>\n";
+	print "You can now see the items photos again if \"$other_item_folder\" contains any.<br>\n";
     }
     elsif ($repairaction eq "B")
     {
@@ -252,19 +185,47 @@ elsif ($itemaction eq "create")
     }
     elsif ($createaction eq "B")
     {
-	my $a_next_item_folder = findNextFoldername("item");
+	my $a_next_item_folder = reduceNameToUnixFolder($cgi_item_name);
 	print "<h3>I want to create a new empty item!</h3>\n";
-	print "Creating the folder $a_next_item_folder in the shared network drive...";
-	$cmd = "mkdir \"$itemroot/$a_next_item_folder\"";
-	my @mkdirerror = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
-	if ($?) {print "<pre>@mkdirerror</pre> <br>\n";print '<font color="red">Careful here: Creating the item folder $a_next_item_folder has not worked! Read the gray screen output to find out why.</font>';}
-	else
-	{
-		print "OK!<br>\n";
-		print "<br>\n";
-		print "The item folder $a_next_item_folder has been created on the shared network drive!<br>\n";
+	
+	print "Creating the item '$cgi_item_name' in the database.";
+	# update DB
+        my $rows_affected = $dbh->do("INSERT INTO items(item_folder,item_name,item_category) VALUES ('$a_next_item_folder','$cgi_item_name','0');");    
+	if ($dbh->err()) { die "$DBI::errstr\n"; }
+	my $dberror = "$DBI::errstr\n";
+	
+	# Get the uniqueID if the newly created item:
+        my @newitemrow = $dbh->selectrow_array("SELECT item_uniqueID FROM items WHERE item_folder = '$a_next_item_folder' ;");
+	my $new_item_uniqueID = @newitemrow[0];
+	
+        # Save History after change:                                                                                                                                          
+        saveHistory($new_item_uniqueID,'CREATE_MANUALEMPTY');
+	
+        if ($rows_affected == 1)                                                                                                                                              
+	{                                                                                                                                                                     
+            #commit                                                                                                                                                           
+            $dbh->commit;                                                                                                                                                     
+	
+	    print "<br>\n";
+    	    print "Creating the item folder...<br>\n";
+	    $cmd = "mkdir \"$itemroot/$a_next_item_folder\"";
+	    my @mkdirerror = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
+	    if ($?) {print "<pre>@mkdirerror</pre> <br>\n";print '<font color="red">Careful here: Creating the item folder $a_next_item_folder has not worked! Read the gray screen output to find out why.</font>';}
+	    else
+	    {
+		print "A folder called '$a_next_item_folder' was created in the shared network drive.<br>\n";
 		print "You can now fill it with photos of the item and any other files you like.<br>\n";
-	}
+		print "<br>\n";
+		print "<br>\n";
+		print "The new item has been created! Forwarding to item...<br>\n";
+	    }
+        }                                                                                                                                                                     
+	else                                                                                                                                                                  
+        {                                                                                                                                                                     
+            $dbh->rollback;                                                                                                                                                   
+            die "Problem during transaction: Exactly 1 item should have been updated but $rows_affected were. Your changes to the item $cgi_item_name may not have been saved. Please check!" . $DBI::errstr ;
+        }
+	
     }
     elsif ($createaction eq "C")
     {
@@ -301,15 +262,51 @@ elsif ($itemaction eq "editsave")
 {                                                                                                                                                                             
                                     
     print "<h1>Saving Item '$cgi_item_name'...</h1>\n";
-    my $rows_affected = $dbh->do("UPDATE items SET item_linkedfolder = '$cgi_item_linkedfolder',item_name='$cgi_item_name',item_description='$cgi_item_description',item_state='$cgi_item_state',item_wikiurl='$cgi_item_wikiurl',item_room='$cgi_item_room',item_shelf='$cgi_item_shelf',item_currentuser='$cgi_item_currentuser',item_invoicedate='$cgi_item_invoicedate',item_uniinvnum='$cgi_item_inventorynumber',item_category='$cgi_item_category',item_versionnumber='$cgi_item_versionnumber',item_serialnumber='$cgi_item_serialnumber',item_workgroup='$cgi_item_workgroup',item_responsibleperson='$cgi_item_responsibleperson' WHERE item_uniqueID = '$cgi_item_uniqueID' ;");    
     
-    # Save History after change:                                                                                                                                          
-    saveHistory($cgi_item_folder,'EDIT_NORMAL');
-
+    # Check DB to see if the item Name has changed:
+    my @itemrow = $dbh->selectrow_array("SELECT item_name,item_folder FROM items WHERE item_uniqueID = '$cgi_item_uniqueID' ;");
+    my $db_item_name = @itemrow[0];
+    my $db_item_folder = @itemrow[1];
+    
+    my $rows_affected;
+    my $newFoldername;
+    if ($cgi_item_name eq $db_item_name)
+    { # Name was not changed, so do not rename folder!
+    
+	# update DB
+        $rows_affected = $dbh->do("UPDATE items SET item_linkedfolder = '$cgi_item_linkedfolder',item_description='$cgi_item_description',item_state='$cgi_item_state',item_wikiurl='$cgi_item_wikiurl',item_room='$cgi_item_room',item_shelf='$cgi_item_shelf',item_currentuser='$cgi_item_currentuser',item_invoicedate='$cgi_item_invoicedate',item_uniinvnum='$cgi_item_inventorynumber',item_category='$cgi_item_category',item_versionnumber='$cgi_item_versionnumber',item_serialnumber='$cgi_item_serialnumber',item_workgroup='$cgi_item_workgroup',item_responsibleperson='$cgi_item_responsibleperson' WHERE item_uniqueID = '$cgi_item_uniqueID' ;");    
+    
+        # Save History after change:                                                                                                                                          
+        saveHistory($cgi_item_uniqueID,'EDIT_NORMAL');
+    }
+    else
+    { # Item Name has changed!
+    
+	# Find new folder name:
+	$newFoldername = reduceNameToUnixFolder($cgi_item_name);	
+	print "The item name has changed. So I am renaming its unix folder from '$db_item_folder' to '$newFoldername'.<br>\n";
+	
+	# update DB
+        $rows_affected = $dbh->do("UPDATE items SET item_folder='$newFoldername',item_name='$cgi_item_name',item_linkedfolder = '$cgi_item_linkedfolder',item_description='$cgi_item_description',item_state='$cgi_item_state',item_wikiurl='$cgi_item_wikiurl',item_room='$cgi_item_room',item_shelf='$cgi_item_shelf',item_currentuser='$cgi_item_currentuser',item_invoicedate='$cgi_item_invoicedate',item_uniinvnum='$cgi_item_inventorynumber',item_category='$cgi_item_category',item_versionnumber='$cgi_item_versionnumber',item_serialnumber='$cgi_item_serialnumber',item_workgroup='$cgi_item_workgroup',item_responsibleperson='$cgi_item_responsibleperson' WHERE item_uniqueID = '$cgi_item_uniqueID' ;");    
+    
+        # Save History after change:                                                                                                                                          
+        saveHistory($cgi_item_uniqueID,'EDIT_AUTOFOLDERRENAME');
+    }
+    
     if ($rows_affected == 1)                                                                                                                                              
     {                                                                                                                                                                     
         #commit                                                                                                                                                           
         $dbh->commit;                                                                                                                                                     
+	
+	if ($cgi_item_name ne $db_item_name)
+	{
+    	    # rename folder on hard disk
+    	    $cmd = "mv $itemroot/$db_item_folder $itemroot/$newFoldername";
+	    my @stdoutput = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.                                                                                                                                                      
+	    if ($?) {print "<font color=\"red\">Careful here: Renaming folder '$db_item_folder' to '$newFoldername' has not worked! Read the gray screen output to find out why.</font>";};                                                                                               
+	}
+
+    print "<br>saved.<br><br>";
     }                                                                                                                                                                     
     else                                                                                                                                                                  
     {                                                                                                                                                                     
@@ -317,10 +314,73 @@ elsif ($itemaction eq "editsave")
         die "Problem during transaction: Exactly 1 item should have been updated but $rows_affected were. Your changes to the item $cgi_item_name may not have been saved. Please check!" 
     }
 
-    print "<br>saved.<br><br>";
     print "<a href='/itemmenu.pl?itemID=$cgi_item_uniqueID'> Back to item </a> <br>\n";
 #    print "<a href='/mainmenu.pl?itemID=$cgi_item_uniqueID'> Redirecting to Main Menu ... </a> <br>\n";
-                                                                                                                                          
+}
+elsif ($itemaction eq "delete")
+{                                                                                                                                          
+    # Check if the folder is empty (ignore hidden files)                                                                                           
+    my @nonhiddenFiles = `ls -1 $itemroot/$dbid_item_folder`;                                                                                           
+    if (@nonhiddenFiles >= 1)                                                                                                                      
+    {  
+	print "How did you get here? The folder for this item still isn't empty!! Not deleting anything.";
+        print "<pre>";                                                                                                                                 
+	print " @nonhiddenFiles";                                                                                                                      
+	print "</pre>";                                                                                                                                
+        print "<a href='/itemmenu.pl?itemID=$cgi_item_uniqueID'>Back to item / Cancel</a>";                                                            
+    }                                                                                                                                              
+    else                                                                                                                                           
+    {                                                                                                                                              
+        print "<h1>Deleting item '$dbid_item_name'</h1>\n";                                                                                    
+	print "Deleting empty folder...<br>\n";
+	`rm $itemroot/$dbid_item_folder -R`;
+	die("Removing the folder didn't work! $@") unless($@ eq "");
+	
+	print "Deleting DB entry...<br>\n";
+	# Save history before deletion (if we weren't deleting, we would be saving AFTER edit):
+	if ($deleteaction eq "A")
+	{
+	    # Item de-inventorised:
+	    saveHistory($cgi_item_uniqueID,'DELETED_DEINVENTORISED');
+	}
+	elsif ($deleteaction eq "B")
+	{
+	    # Item merged into other:
+	    saveHistory($cgi_item_uniqueID,'DELETED_MERGEDINTO',$actionB_itemID);
+	}
+	elsif ($deleteaction eq "C")
+	{
+	    # Database cleanup:
+	    saveHistory($cgi_item_uniqueID,'DELETED_DBCLEANUP');
+	}
+	else
+	{
+	    print "<br>\n";
+	    print "<br>\n";
+	    print "Unknown create action. Please choose an option using the option buttons on the previous screen.";
+	}
+
+	# Do the deletion:
+    	my $rows_affected = $dbh->do("DELETE FROM items WHERE item_uniqueID='$cgi_item_uniqueID';"); # This either deletes one (if auto-item was already created) or no rows.
+
+	# Commit!	
+	if ($rows_affected == 1)
+	{
+	    #commit
+	    $dbh->commit;
+	}
+	else
+	{
+	    $dbh->rollback; 
+    	    die "Problem during transaction: Exactly 1 item should have been updated but $rows_affected were. You must not reload the current page! If you did not do that, this is an error!" . $dbh->errstr 
+	}
+
+	print "OK!<br>\n";
+	print "<br>\n";
+	
+    }                                                                                                                                              
+    
+    
     
 }
 else
@@ -336,9 +396,40 @@ else
 #print "<br>\n";
 print "	<a href='/mainmenu.pl?itemID=$cgi_item_uniqueID'>Back to Main List</a>";
 
+
+
 print "</body></html>\n";
 
 $dbh->disconnect();
+
+
+
+
+
+
+
+#################################################
+# Sub-Procedures: 
+#################################################
+
+sub reduceNameToUnixFolder
+{
+    my $given_itemname = @_[0];
+    
+    # Make it start and end with a letter:                                                                                      
+    my $numberOfMatches = $given_itemname =~ s/^[^A-Z,a-z]*([A-Z,a-z]+.*[A-Z,a-z]+)[^A-Z,a-z]*$/$1/;
+    if ($numberOfMatches != 1)
+    {
+        # handle awful item names:
+	$given_itemname = "weirditem";
+    }
+    # Throw away special characters:
+    $given_itemname =~ s/[^\w]//g;
+    
+    # The given_itemname can now be used as the base for a unix folder!
+    
+    return findNextFoldername($given_itemname);
+}
 
 sub findNextFoldername
 {
@@ -356,7 +447,7 @@ sub findNextFoldername
 	my @itemindices;
 	foreach my $anitemfolder (@allitemsfiles)                                                                                                                                                                                                            
 	{
-	my $one;
+	    #my $one;
 	    if ( $anitemfolder =~ m/^$folderbase(\d*)$/ )
 	    {
 		#print "index: $1 <br>";
@@ -376,4 +467,84 @@ sub findNextFoldername
 	else  {$next_item_folder = "${folderbase}".($newID);}
 
     return $next_item_folder;
+}
+
+
+sub saveHistory
+{
+    my ($givenItemID,$operation_string,$otherItemID) = @_;
+    
+    # Double-check against implementation errors:    
+    if ($givenItemID eq $otherItemID) {die("givenid and otherid are equal!");}
+    
+    my @itemrow = $dbh->selectrow_array("SELECT 
+    item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber,item_workgroup,item_responsibleperson,item_uniqueID,
+    room_id,room_number,room_floor,room_building,room_name,
+    category_id,category_name
+    FROM items LEFT JOIN rooms ON items.item_room=rooms.room_id LEFT JOIN categories ON items.item_category=categories.category_id 
+    WHERE items.item_uniqueID='$givenItemID';");
+    my $item_folderDB = @itemrow[0];
+    my $item_basedonID = @itemrow[1];
+    my $item_name = @itemrow[2];
+    my $item_description = @itemrow[3];
+    my $item_state = @itemrow[4];
+    my $item_wikiurl = @itemrow[5];
+    my $item_room = @itemrow[6];
+    my $item_shelf = @itemrow[7];
+    my $item_currentuser = @itemrow[8];
+    my $item_invoicedate = @itemrow[9];
+    my $item_inventorynumber = @itemrow[10];
+    my $item_category = @itemrow[11];
+    my $item_versionnumber = @itemrow[12];
+    my $item_serialnumber = @itemrow[13];
+    my $item_workgroup = @itemrow[14];
+    my $item_responsibleperson = @itemrow[15];
+    my $item_uniqueID = @itemrow[16];
+    my $room_id = @itemrow[17];
+    my $room_number = @itemrow[18];
+    my $room_floor = @itemrow[19];
+    my $room_building = @itemrow[20];
+    my $room_name = @itemrow[21];
+    my $category_id = @itemrow[22];
+    my $category_name = @itemrow[23];
+    
+    
+#    my $roomString = "Unspecified";
+#    if ($item_room != 0)
+#    {
+#	$roomString = $room_name;
+#    }    
+#    my $categoryString;
+
+    my $xmlblob = "\
+	<td nowrap title=\"LDAP User\">&nbsp; by <b>$ENV{'REMOTE_USER'}</b> ($ENV{'REMOTE_ADDR'}) &nbsp;</td>\
+	<td nowrap title=\"Item Name\">$item_name</td> \
+	<td nowrap title=\"Room\">$room_name</td>\
+	<td nowrap title=\"Shelf\">$item_shelf</td> \
+	<td nowrap title=\"State\">$item_state</td> \
+	<td nowrap title=\"Current User\">$item_currentuser</td> \
+ 	<td nowrap title=\"-\">-</td> \
+	<td nowrap title=\"Responsible Person\">$item_responsibleperson</td> \ 
+	<td nowrap title=\"Unix Folder\">$item_folderDB</td> \
+	<td nowrap title=\"Description\">$item_description</td> \
+	<td nowrap title=\"LinkedItem\">$item_basedonID</td> \
+	<td nowrap title=\"Wiki URL\">$item_wikiurl</td> \
+	<td nowrap title=\"Invoice Date\">$item_invoicedate</td> \
+	<td nowrap title=\"University Inventory #\">$item_inventorynumber</td> \
+	<td nowrap title=\"Serial Number\">$item_serialnumber</td> \
+	<td nowrap title=\"Version\">$item_versionnumber</td> \
+	<td nowrap title=\"Workgroup\">$item_workgroup</td> \
+	<td nowrap title=\"Category\">$category_name</td> \
+	<td nowrap title=\"Item Unique ID\">$item_uniqueID</td> 
+	<td nowrap title=\"Room ID\">$item_room</td> 
+	<td nowrap title=\"Category ID\">$item_category</td>";
+
+    print "<table border=0><tr><td nowrap>History Blob:</td>$xmlblob</tr></table>";
+    	
+    my $time = time();
+    #my $ar =  $dbh->do("INSERT INTO history (history_itemuniqueid,history_operation,history_operationtime,history_xmlblob) VALUES ('$item_uniqueID','$operation_string','$time','$xmlblob')"); 
+    my $ar =  $dbh->do("INSERT INTO history (history_itemuniqueid,history_operation,history_otherItemID,history_operationtime,history_xmlblob) VALUES ('$item_uniqueID','$operation_string','$otherItemID','$time','$xmlblob')"); 
+
+    # Do not commit here: Do it in calling code only when thte actual operation succeeded!
+    #$dbh->commit();
 }

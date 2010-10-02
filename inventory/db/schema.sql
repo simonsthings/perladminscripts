@@ -1,23 +1,22 @@
 create table items (
-        item_folder      text,
-	item_linkedfolder  text,
-        item_name        text,
-        item_description text,
-	item_state       text,
-	item_wikiurl     text,
-        item_room        integer,
-	item_shelf	 text,
-	item_currentuser text,
-	item_invoicedate text,
-	item_uniinvnum   text,
-	item_category	 integer,
+	item_uniqueID		integer primary key autoincrement,
+        item_name        	text,
+        item_folder      	text,
+	item_linkedfolder  	text,
+        item_description 	text,
+	item_state       	text,
+	item_wikiurl     	text,
+        item_room        	integer,
+	item_shelf	 	text,
+	item_currentuser 	text,
+	item_invoicedate 	text,
+	item_uniinvnum   	text,
+	item_category	 	integer,
 	item_versionnumber	text,
 	item_serialnumber	text,
 	item_workgroup		text,
-	item_responsibleperson	text,
-	item_uniqueID		integer primary key autoincrement
+	item_responsibleperson	text
 );
-
 
 create table rooms (
 	room_id   	integer,
@@ -36,6 +35,7 @@ create table history (
 	history_itemuniqueid	integer,
 	history_operation	text,
 	history_operationtime	integer,
+	history_otheritemid	integer,
 	history_xmlblob		text	
 );
 
@@ -64,13 +64,21 @@ insert into rooms (room_id,room_number,room_floor,room_building,room_name) value
 
 
 insert into categories (category_id,category_name) values (0,'New Items (unspecified Category)');
-insert into categories (category_id,category_name) values (1,'Laboratory Equipment & Self-Manufactured Hardware');
-insert into categories (category_id,category_name) values (2,'Office Hardware');
-insert into categories (category_id,category_name) values (3,'Software');
-insert into categories (category_id,category_name) values (4,'Books & Papers'); 
+insert into categories (category_id,category_name) values (10,'Laboratory Equipment & Tools');
+insert into categories (category_id,category_name) values (20,'Self-Manufactured Hardware & Small Parts');
+insert into categories (category_id,category_name) values (30,'Office Hardware & Supplies');
+insert into categories (category_id,category_name) values (40,'Software');
+insert into categories (category_id,category_name) values (50,'Books & Papers'); 
 
-INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('CREATE_MMAUTO','Created');
-INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('CREATE_MANUAL','Created');
+INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('CREATE_AUTOWEBDAV','Created');
+INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('CREATE_MANUALEMPTY','Created');
+INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('CREATE_MANUALCOPY','Created');
 INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('REPAIR_FOLDERRENAMED','Repaired');
 INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('EDIT_NORMAL','Edited');
+INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('EDIT_AUTOFOLDERRENAME','Edited');
 INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('DELETED_REPAIROTHER','Deleted');
+INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('DELETED_DEINVENTORISED','Deleted');
+INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('DELETED_MERGEDINTO','Deleted');
+INSERT INTO history_operations(hop_operation,hop_nicename) VALUES('DELETED_DBCLEANUP','Deleted');
+
+

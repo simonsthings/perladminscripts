@@ -36,6 +36,10 @@ print OUTKFILE "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
 #print OUTKFILE "(<a href='http://en.wikipedia.org/wiki/WebDAV#Implementations'>Mount</a> <i><b>https://inventory.isip.uni-luebeck.de/items/</b></i> as a network drive for uploading images via the file system.)<br>\n";
 #print OUTKFILE "<br>\n";
 
+print OUTKFILE "<input type='button' value='Refresh this list' onclick='document.location.href=\"mainmenu.pl\"'>";
+print OUTKFILE "<input type='button' value='Create New Item' onclick='document.location.href=\"createitem.pl\"'>";
+print OUTKFILE "<input type='button' value='Show complete History' onclick='document.location.href=\"historylist.pl\"'>";
+print OUTKFILE "<br>";
 
 #print OUTKFILE "hallaaa";
 #print OUTKFILE "docroot = $docroot ! <br><br>";                                                                                                                       
@@ -145,11 +149,14 @@ foreach my $itemfolder (@allitemfolders)
 				}
 				$sthforinsert->finish();
 				my $time = time();
+				
+				saveHistory($uniqueID,'CREATE_AUTOWEBDAV');
+				
 				#print OUTKFILE "Inserting ID=$uniqueID, ITEM=$itemfolder, TIME=$time !";
-				my $h =  $dbh->do("INSERT INTO history (history_itemuniqueid,history_operation,history_operationtime,history_xmlblob) VALUES ($uniqueID,'CREATE_MMAUTO',$time,'<td title=\"Item Name\">$itemfolder</td><td title=\"Item Unix Folder\">$itemfolder</td><td title=\"Item Description\">...</td>')");				
+				#my $h =  $dbh->do("INSERT INTO history (history_itemuniqueid,history_operation,history_operationtime,history_xmlblob) VALUES ($uniqueID,'CREATE_AUTOWEBDAV',$time,'<td title=\"Item Name\">$itemfolder</td><td title=\"Item Unix Folder\">$itemfolder</td><td title=\"Item Description\">...</td>')");				
 				$dbh->commit();
 				
-				print OUTKFILE "<font color='gray'>(The new item '$itemfolder' was inserted into the database.)</font><br>\n";
+				print OUTKFILE "<font color='gray'>(The new item '<a href='itemmenu.pl?itemID=$uniqueID'><font color='gray'>$itemfolder</font></a>' was created in the database because someone created a folder by that name using WebDAV.)</font><br>\n";
 		    }
 		    else
 	        {
@@ -190,7 +197,7 @@ foreach my $categoryrowref (@{$categoryrowsref})
 	my $category_name = @categoryrow[1];
 
 	# Get all items for current category (the ending "ref" stands for "reference", so think pointers!):
-	my $allitemrowsref = $dbh->selectall_arrayref("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category , rooms.room_id, rooms.room_number, rooms.room_floor, rooms.room_building, rooms.room_name, item_versionnumber, item_serialnumber, item_workgroup, item_responsibleperson, item_uniqueID FROM items LEFT JOIN rooms ON items.item_room=rooms.room_id WHERE item_category='$category_id';");
+	my $allitemrowsref = $dbh->selectall_arrayref("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category , rooms.room_id, rooms.room_number, rooms.room_floor, rooms.room_building, rooms.room_name, item_versionnumber, item_serialnumber, item_workgroup, item_responsibleperson, item_uniqueID FROM items LEFT JOIN rooms ON items.item_room=rooms.room_id WHERE item_category='$category_id' ORDER BY item_name ;");
 	
 	my $itemcount = scalar(@{$allitemrowsref});
 	if ($itemcount > 0)
@@ -256,55 +263,9 @@ foreach my $categoryrowref (@{$categoryrowsref})
 			
 			# Photos:
 			print OUTKFILE "<td width='40%'>\n";
-        		if (-e "$itemroot/$item_folder")
-			{
-
-				$cmd = "ls -1A $itemroot/$item_folder";
-				my @allitemsfiles = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
-				if ($?) {print OUTKFILE '<font color="red">Careful here: Listing contents of item folder has not worked! Read the gray screen output to find out why.</font>';};
-				# Chopping off the line breaks from all array elements (otherwise the comparison below will not work):
-				chomp(@allitemsfiles);
-
-				foreach my $imagefilename (@allitemsfiles)
-				{
-					# for each file that starts with a letter and ends with .jpg, .png or .gif
-					if ( ((substr($imagefilename, -4) eq (".jpg")) or (substr($imagefilename, -4) eq (".png")) or (substr($imagefilename, -4) eq (".gif")))
-						and ($imagefilename =~ m/^\w(\w|\.)+$/) )
-					{
-						my $thumbnailfile = "$itemroot/../thumbs/$item_folder/$imagefilename";
-
-						#create thumbnail folder if it does not exist yet:
-						if (!(-e "$itemroot/../thumbs/$item_folder/."))
-						{
-							$cmd = "mkdir -p \"$itemroot/../thumbs/$item_folder\"";
-							my @mkdirerror = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
-							if ($?) {print OUTKFILE "<pre>@mkdirerror</pre> <br>\n";print OUTKFILE '<font color="red">Careful here: Creating the thumbnail folder for $imagefilename has not worked! Read the gray screen output to find out why.</font>';};
-						}
-
-						# generate thumbnail if it does not exist yet
-						if (!(-e $thumbnailfile))
-						{
-							#`"mkdir \"$itemroot/../thumbs/$item_folder\""`;
-							$cmd = "convert \"$itemroot/$item_folder/$imagefilename\" -resize x$thumbnailresolution \"$thumbnailfile\"";
-							my @outputlines = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
-						
-							if ($?) {print OUTKFILE "<pre>@outputlines</pre> <br>\n";print OUTKFILE '<font color="red">Careful here: Converting the image has not worked! Read the gray screen output to find out why.</font>';};
-						}
-						else
-						{
-							#print OUTKFILE "thumbnail of $imagefilename already there.<br>\n"
-						}
-					
-						# link to thumb				
-						print OUTKFILE "<a href='$itemfolderlink#$imagefilename'><img border=0 src='thumbs/$item_folder/$imagefilename'></a> ";
-					}
-				}
-			}
-			else
-			{
-				print OUTKFILE "<a href='repairmenu.pl?item_folder=$item_folder'><font color='red'>Alert: The photo folder of this item was not found! Was it renamed or deleted via WebDAV? Click to repair!</font></a>";
-			}
-
+			
+			listPhotos($item_uniqueID,$item_folder,$itemfolderlink);
+			
 			#print OUTKFILE "@allitemsfiles";
 			print OUTKFILE "</td>\n";
 
@@ -361,7 +322,8 @@ $dbh->disconnect();
 ########################
 print OUTKFILE "<br>";
 print OUTKFILE "<input type='button' value='Create New Item' onclick='document.location.href=\"createitem.pl\"'>";
-print OUTKFILE " ... or you can make a new folder in the shared file system if you have mounted the network drive! See above.";
+print OUTKFILE " Or create folder in WebDAV!";
+#print OUTKFILE " ... or you can make a new folder in the shared file system if you have mounted the network drive! See above.";
 print OUTKFILE "<br>";
 
 print OUTKFILE "<br>";
@@ -369,9 +331,9 @@ print OUTKFILE "<a href='historylist.pl'> Show complete history of all changes! 
 
 
 print OUTKFILE "<br>";
-print OUTKFILE "<a href='/?thumbnailresolution=30' method=\"post\"> Rebuild thumbnails at 30 pixels </a> <br>\n";
-print OUTKFILE "<a href='/?thumbnailresolution=48'> Rebuild thumbnails at 48 pixels </a> <br>\n";
-print OUTKFILE "<a href='/?thumbnailresolution=100'> Rebuild thumbnails at 100 pixels </a> <br>\n";
+print OUTKFILE "<a href='/mainmenu.pl?thumbnailresolution=30' method=\"post\"> Rebuild thumbnails at 30 pixels </a> <br>\n";
+print OUTKFILE "<a href='/mainmenu.pl?thumbnailresolution=48'> Rebuild thumbnails at 48 pixels </a> <br>\n";
+print OUTKFILE "<a href='/mainmenu.pl?thumbnailresolution=100'> Rebuild thumbnails at 100 pixels </a> <br>\n";
 print OUTKFILE "<br>";
 print OUTKFILE "<br>";
 
@@ -396,3 +358,151 @@ print "</head>";
 #}                                     
 #print "</body>";
 print "</html>";
+
+
+
+
+
+sub listPhotos
+{
+    my $item_uniqueID  = @_[0];
+    my $item_folder    = @_[1];  
+    my $itemfolderlink = @_[2];  
+
+        		if (-e "$itemroot/$item_folder")
+			{
+
+				$cmd = "ls -1A $itemroot/$item_folder";
+				my @allitemsfiles = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
+				if ($?) {print OUTKFILE '<font color="red">Careful here: Listing contents of item folder has not worked! Read the gray screen output to find out why.</font>';};
+				# Chopping off the line breaks from all array elements (otherwise the comparison below will not work):
+				chomp(@allitemsfiles);
+
+				foreach my $imagefilename (@allitemsfiles)
+				{
+		        	        # for each file that starts with a letter and ends with .jpg, .png or .gif, ignoring the case.                                 
+			                if ($imagefilename =~ m/^\w.*\.(jpg|jpeg|gif|png)$/i)                                                                          
+					{
+						my $thumbnailfile = "$itemroot/../thumbs/$item_folder/$imagefilename";
+
+						#create thumbnail folder if it does not exist yet:
+						if (!(-e "$itemroot/../thumbs/$item_folder/."))
+						{
+							$cmd = "mkdir -p \"$itemroot/../thumbs/$item_folder\"";
+							my @mkdirerror = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
+							if ($?) {print OUTKFILE "<pre>@mkdirerror</pre> <br>\n";print OUTKFILE '<font color="red">Careful here: Creating the thumbnail folder for $imagefilename has not worked! Read the gray screen output to find out why.</font>';};
+						}
+
+						# generate thumbnail if it does not exist yet
+						if (!(-e $thumbnailfile))
+						{
+							#`"mkdir \"$itemroot/../thumbs/$item_folder\""`;
+							$cmd = "convert \"$itemroot/$item_folder/$imagefilename\" -resize x$thumbnailresolution \"$thumbnailfile\"";
+							my @outputlines = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
+						
+							if ($?) {print OUTKFILE "<pre>@outputlines</pre> <br>\n";print OUTKFILE '<font color="red">Careful here: Converting the image has not worked! Read the gray screen output to find out why.</font>';};
+						}
+						else
+						{
+							#print OUTKFILE "thumbnail of $imagefilename already there.<br>\n"
+						}
+					
+						# link to thumb				
+						print OUTKFILE "<a href='$itemfolderlink#$imagefilename'><img border=0 src='thumbs/$item_folder/$imagefilename'></a> ";
+					}
+				}
+			}
+			else
+			{
+				print OUTKFILE "<a href='repairmenu.pl?itemID=$item_uniqueID'><font color='red'>Alert: The photo folder of this item was not found! Was it renamed or deleted via WebDAV? Click to repair!</font></a>";
+			}
+
+
+}
+
+
+
+
+sub saveHistory                                                                                                                                                                                                                                                                    
+{                                                                                                                                                                                                                                                                                  
+    my ($givenItemID,$operation_string,$otherItemID) = @_;                                                                                                                                                                                                                         
+                                                                                                                                                                                                                                                                                   
+    # Double-check against implementation errors:                                                                                                                                                                                                                                  
+    if ($givenItemID eq $otherItemID) {die("givenid and otherid are equal!");}                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                                                   
+    my @itemrow = $dbh->selectrow_array("SELECT                                                                                                                                                                                                                                    
+    item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber,item_workgroup,item_responsibleperson,item_uniqueID,                 
+    room_id,room_number,room_floor,room_building,room_name,                                                                                                                                                                                                                        
+    category_id,category_name                                                                                                                                                                                                                                                      
+    FROM items LEFT JOIN rooms ON items.item_room=rooms.room_id LEFT JOIN categories ON items.item_category=categories.category_id                                                                                                                                                 
+    WHERE items.item_uniqueID='$givenItemID';");                                                                                                                                                                                                                                   
+    my $item_folderDB = @itemrow[0];                                                                                                                                                                                                                                               
+    my $item_basedonID = @itemrow[1];                                                                                                                                                                                                                                              
+    my $item_name = @itemrow[2];                                                                                                                                                                                                                                                   
+    my $item_description = @itemrow[3];                                                                                                                                                                                                                                            
+    my $item_state = @itemrow[4];                                                                                                                                                                                                                                                  
+    my $item_wikiurl = @itemrow[5];                                                                                                                                                                                                                                                
+    my $item_room = @itemrow[6];                                                                                                                                                                                                                                                   
+    my $item_shelf = @itemrow[7];                                                                                                                                                                                                                                                  
+    my $item_currentuser = @itemrow[8];                                                                                                                                                                                                                                            
+    my $item_invoicedate = @itemrow[9];                                                                                                                                                                                                                                            
+    my $item_inventorynumber = @itemrow[10];                                                                                                                                                                                                                                       
+    my $item_category = @itemrow[11];                                                                                                                                                                                                                                              
+    my $item_versionnumber = @itemrow[12];                                                                                                                                                                                                                                         
+    my $item_serialnumber = @itemrow[13];                                                                                                                                                                                                                                          
+    my $item_workgroup = @itemrow[14];                                                                                                                                                                                                                                             
+    my $item_responsibleperson = @itemrow[15];                                                                                                                                                                                                                                     
+    my $item_uniqueID = @itemrow[16];                                                                                                                                                                                                                                              
+    my $room_id = @itemrow[17];                                                                                                                                                                                                                                                    
+    my $room_number = @itemrow[18];                                                                                                                                                                                                                                                
+    my $room_floor = @itemrow[19];                                                                                                                                                                                                                                                 
+    my $room_building = @itemrow[20];                                                                                                                                                                                                                                              
+    my $room_name = @itemrow[21];                                                                                                                                                                                                                                                  
+    my $category_id = @itemrow[22];                                                                                                                                                                                                                                                
+    my $category_name = @itemrow[23];                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                   
+#    my $roomString = "Unspecified";                                                                                                                                                                                                                                               
+#    if ($item_room != 0)                                                                                                                                                                                                                                                          
+#    {                                                                                                                                                                                                                                                                             
+#       $roomString = $room_name;                                                                                                                                                                                                                                                  
+#    }                                                                                                                                                                                                                                                                             
+#    my $categoryString;                                                                                                                                                                                                                                                           
+                                                                           
+
+
+                                                                                                                                                                                                                                                                           
+    my $xmlblob = "\                                                                                                                                                                                                                                                               
+        <td nowrap title=\"LDAP User\">&nbsp; by <b>WebDAV network drive</b> &nbsp;</td>\                                                                                                                                                                     
+        <td nowrap title=\"Item Name\">$item_name</td> \                                                                                                                                                                                                                           
+        <td nowrap title=\"Room\">$room_name</td>\                                                                                                                                                                                                                                 
+        <td nowrap title=\"Shelf\">$item_shelf</td> \                                                                                                                                                                                                                              
+        <td nowrap title=\"State\">$item_state</td> \                                                                                                                                                                                                                              
+        <td nowrap title=\"Current User\">$item_currentuser</td> \                                                                                                                                                                                                                 
+        <td nowrap title=\"-\">-</td> \                                                                                                                                                                                                                                            
+        <td nowrap title=\"Responsible Person\">$item_responsibleperson</td> \                                                                                                                                                                                                     
+        <td nowrap title=\"Unix Folder\">$item_folderDB</td> \                                                                                                                                                                                                                     
+        <td nowrap title=\"Description\">$item_description</td> \                                                                                                                                                                                                                  
+        <td nowrap title=\"LinkedItem\">$item_basedonID</td> \                                                                                                                                                                                                                     
+        <td nowrap title=\"Wiki URL\">$item_wikiurl</td> \                                                                                                                                                                                                                         
+        <td nowrap title=\"Invoice Date\">$item_invoicedate</td> \                                                                                                                                                                                                                 
+        <td nowrap title=\"University Inventory #\">$item_inventorynumber</td> \                                                                                                                                                                                                   
+        <td nowrap title=\"Serial Number\">$item_serialnumber</td> \                                                                                                                                                                                                               
+        <td nowrap title=\"Version\">$item_versionnumber</td> \                                                                                                                                                                                                                    
+        <td nowrap title=\"Workgroup\">$item_workgroup</td> \                                                                                                                                                                                                                      
+        <td nowrap title=\"Category\">$category_name</td> \                                                                                                                                                                                                                        
+        <td nowrap title=\"Item Unique ID\">$item_uniqueID</td>                                                                                                                                                                                                                    
+        <td nowrap title=\"Room ID\">$item_room</td>                                                                                                                                                                                                                               
+        <td nowrap title=\"Category ID\">$item_category</td>";                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                                                   
+#    print "<table border=0><tr><td nowrap>History Blob:</td>$xmlblob</tr></table>";                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                   
+    my $time = time();                                                                                                                                                                                                                                                             
+    #my $ar =  $dbh->do("INSERT INTO history (history_itemuniqueid,history_operation,history_operationtime,history_xmlblob) VALUES ('$item_uniqueID','$operation_string','$time','$xmlblob')");                                                                                    
+    my $ar =  $dbh->do("INSERT INTO history (history_itemuniqueid,history_operation,history_otherItemID,history_operationtime,history_xmlblob) VALUES ('$item_uniqueID','$operation_string','$otherItemID','$time','$xmlblob')");                                                  
+                                                                                                                                                                                                                                                                                   
+    # Do not commit here: Do it in calling code only when thte actual operation succeeded!                                                                                                                                                                                         
+    #$dbh->commit();                                                                                                                                                                                                                                                               
+}                                                                                                                                                                                                                                                                                  
+
+

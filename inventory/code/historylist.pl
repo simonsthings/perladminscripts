@@ -35,21 +35,34 @@ if ($cgi_item_uniqueID eq "")
     ## Stand-alone mode:
     print "<h1>Viewing complete History of all items</h1>\n";
     print "<u>Item History:</u><br>";
-    my $historystatement = $dbh->prepare("SELECT history_itemuniqueid,history_operation,history_operationtime,history_xmlblob,hop_nicename,item_name FROM history LEFT JOIN history_operations ON history_operation=hop_operation LEFT JOIN items ON item_uniqueID=history_itemuniqueid ORDER BY history_operationtime DESC ;");
+    my $historystatement = $dbh->prepare("SELECT history_itemuniqueid,history_operation,history_otheritemid,history_operationtime,history_xmlblob,hop_nicename,thisitem.item_name,otheritem.item_name FROM history LEFT JOIN history_operations ON history_operation=hop_operation LEFT JOIN items AS thisitem ON thisitem.item_uniqueID=history_itemuniqueid LEFT JOIN items AS otheritem ON otheritem.item_uniqueID=history_otheritemid ORDER BY history_operationtime DESC ;");
     if ($historystatement->err()) { die "Cannot prepare statement: $DBI::errstr\n"; }                                                                                                                                     
     $historystatement->execute();
 
     print "<table border=1 cellpadding=2 cellspacing=0>";
-    while ( (my $history_itemuniqueid, my $history_operation, my $history_operationtime, my $history_xmlblob, my $historyop_nicename, my $item_name)  = $historystatement->fetchrow())
+    while ( (my $history_itemuniqueid, my $history_operation,my $history_otheritemid, my $history_operationtime, my $history_xmlblob, my $historyop_nicename, my $item_name, my $otheritem_name)  = $historystatement->fetchrow())
     {
+	my $otheritemhtml="";
+	if ($history_otheritemid ne "")
+	{
+	    if ($otheritem_name ne "")
+	    {
+		$otheritemhtml = ", affecting <a href='itemmenu.pl?itemID=$history_otheritemid'> $otheritem_name</a>";
+	    }
+	    else
+	    {
+		$otheritemhtml = ", affecting $history_otheritemid";
+	    }	    
+	}
+    
         my $timestring = scalar( localtime($history_operationtime));
 	if ($item_name eq "")
 	{
-	    print "<tr><td align=center title='ID of deleted item'>$history_itemuniqueid</td><th nowrap>$timestring</th><th nowrap title=\"$history_operation\">$historyop_nicename</th> $history_xmlblob </tr>";
+	    print "<tr><td align=center title='ID of deleted item'>$history_itemuniqueid $otheritemhtml</td><th nowrap>$timestring</th><th nowrap title=\"$history_operation\">$historyop_nicename</th> $history_xmlblob </tr>";
 	}
 	else
 	{
-	    print "<tr><td nowrap align=center title='Item Name'><a title='Item ID: $history_itemuniqueid' href=itemmenu.pl?itemID=$history_itemuniqueid> $item_name </a></td><th nowrap>$timestring</th><th nowrap title=\"$history_operation\">$historyop_nicename</th> $history_xmlblob </tr>";
+	    print "<tr><td nowrap align=center title='Item Name'><a title='Item ID: $history_itemuniqueid' href=itemmenu.pl?itemID=$history_itemuniqueid> $item_name </a>$otheritemhtml</td><th nowrap>$timestring</th><th nowrap title=\"$history_operation\">$historyop_nicename</th> $history_xmlblob </tr>";
 	}
     }
     $historystatement->finish();

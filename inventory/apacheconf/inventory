@@ -178,16 +178,14 @@
 	</Location>
 	
 	#------- Allow CGI scripts for creating new items and such ----------
-	ScriptAlias /itemmenu.pl /var/www/inventory/code/itemmenu.pl
-	ScriptAlias /saveitem.pl /var/www/inventory/code/saveitem.pl
-	ScriptAlias /repairmenu.pl /var/www/inventory/code/repairmenu.pl
-	ScriptAlias /folderoperations.pl /var/www/inventory/code/folderoperations.pl
-	ScriptAlias /createitem.pl /var/www/inventory/code/createitem.pl
-	ScriptAlias /historylist.pl /var/www/inventory/code/historylist.pl
-	#ScriptAlias /updatemain.pl /var/www/inventory/code/updatemain.pl
+	# mainmenu.pl generates the index.html and then forwards to it!
 	ScriptAlias /mainmenu.pl /var/www/inventory/code/mainmenu.pl
-	#ScriptAlias / /var/www/inventory/code/mainmenu.pl
-	
+	ScriptAlias /createitem.pl /var/www/inventory/code/createitem.pl
+	ScriptAlias /itemmenu.pl /var/www/inventory/code/itemmenu.pl
+	ScriptAlias /repairmenu.pl /var/www/inventory/code/repairmenu.pl
+	ScriptAlias /deleteitem.pl /var/www/inventory/code/deleteitem.pl
+	ScriptAlias /folderoperations.pl /var/www/inventory/code/folderoperations.pl
+	ScriptAlias /historylist.pl /var/www/inventory/code/historylist.pl
 	#-------------------------End of CGI activation ----------------------------
 	
 	

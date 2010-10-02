@@ -153,13 +153,15 @@ my $wherecondition;
 if ($cgi_item_uniqueID eq "")
 {
     $wherecondition = "WHERE item_folder='$cgi_item_folder'";
+    print "<font color=grey>Notice: Using the item folder to specify the item to edit is deprecated and will stop working soon.</font><br>\n"
 }
 else
 {
     $wherecondition = "WHERE item_uniqueID='$cgi_item_uniqueID'";
 }
 my @itemrow = $dbh->selectrow_array("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber,item_workgroup,item_responsibleperson,item_uniqueID  FROM items  $wherecondition ;");
-die("Only one element was returned while asking the database for a complete row of item data! Please check SQL query (to changed schema?) and update implementation!") unless (@itemrow > 1);
+#print "Item row: @itemrow";
+#die("Only one element was returned while asking the database for a complete row of item data! Please check SQL query (to changed schema?) and update implementation!") unless (@itemrow > 1);
 
 my $item_folder = @itemrow[0];
 my $item_basedon = @itemrow[1];
@@ -179,7 +181,40 @@ my $item_workgroup = @itemrow[14];
 my $item_responsibleperson = @itemrow[15];
 my $item_uniqueID = @itemrow[16];
 
-print "<h1>$item_name</h1>";
+if (@itemrow > 0)
+{
+    print "<table border=0 width=100%><tr><td>";
+    print "<h1>$item_name</h1>";
+    print "</td><td align=right valign=top>";
+    my $prev = $cgi_item_uniqueID - 1;
+    my $next = $cgi_item_uniqueID + 1;
+    if ($prev==0){$prev=1;}
+    print "    <a href=\"/itemmenu.pl?itemID=$prev\"><font color=grey>Previous</font></a> <font color=grey> | </font>  ";
+    print "    <a href=\"/itemmenu.pl?itemID=$next\"><font color=grey>Next</font></a> ";
+    print "</td></tr></table>";
+}
+else
+{
+    print "<table border=0 width=100%><tr><td>";
+    print "<h1>There is no item $cgi_item_uniqueID. Go away!</h1>";
+    print "</td><td align=right valign=top>";
+    my $prev = $cgi_item_uniqueID - 1;
+    my $next = $cgi_item_uniqueID + 1;
+    if ($prev==0){$prev=1;}
+    print "    <a href=\"/itemmenu.pl?itemID=$prev\"><font color=grey>Previous</font></a> <font color=grey> | </font>  ";
+    print "    <a href=\"/itemmenu.pl?itemID=$next\"><font color=grey>Next</font></a> ";
+    print "</td></tr></table>";
+    
+    # History:
+#    print "<u>Item History:</u><br>";
+    print "<iframe src=\"historylist.pl?itemID=$cgi_item_uniqueID\" name=\"historyiframe\" width=\"100%\" frameborder=0 marginheight=3 marginwidth=0>";
+    print "Your browser does not support iframes! Please just visit <A HREF=\"historylist.pl\">this page</A> instead.";                            
+    print "</iframe>\n";
+    print "<br>\n\n";
+    
+    print "</body></html>";
+    exit 0;
+}
 
 # see sub-procedure at end of file.
 showPhotos();
@@ -191,10 +226,12 @@ my $fieldhelpfontsize = 1;
 print "<form action='/folderoperations.pl' method='get'>\n";
 
 # Save button:
-print "    <br><input type='submit' value='Save & Back'>";
-print "        <input type='submit' value='Save & Stay'>";
-print "    <a href=\"/mainmenu.pl?itemID=$item_uniqueID\">Cancel</a> ";
+print "  <input type='submit' value='Save & Back'>";
+print "  <input type='submit' value='Save & Stay'>";
+print "  <a href=\"/mainmenu.pl?itemID=$item_uniqueID\">Cancel</a> ";
 #print "	<input type='button' value='Cancel' onclick='document.location.href=\"/#$item_folder\"'>";
+
+
 print "<br><br>";
 
 
@@ -310,7 +347,7 @@ print "<br>\n\n";
 
 # Delete Button:
 print "<br>\n";
-print "<input type='button' value='Delete this item...' onclick='document.location.href=\"/style/notimplemented.html\"'>";
+print "<input type='button' value='Delete this item...' onclick='document.location.href=\"/deleteitem.pl?itemID=$cgi_item_uniqueID\"'>";
 
 
 # WebDAV hint:
@@ -345,10 +382,11 @@ sub showPhotos
         # Chopping off the line breaks from all array elements (otherwise the comparison below will not work):
         chomp(@allitemsfiles);
 	
+	my $numberofImages=0;
 	foreach my $imagefilename (@allitemsfiles)
 	{
-		# for each file that starts with a letter and ends with .jpg, .png or .gif
-		if ( ((substr($imagefilename, -4) eq (".jpg")) or (substr($imagefilename, -4) eq (".png")) or (substr($imagefilename, -4) eq (".gif"))) and ($imagefilename =~ m/^\w(\w|\.)+$/) )
+		# for each file that starts with a letter and ends with .jpg, .png or .gif, ignoring the case.
+		if ($imagefilename =~ m/^\w.*\.(jpg|jpeg|gif|png)$/i)
 		{
 			my $thumbnailfile = "$itemroot/../thumbs/$item_folder/${thumbnailresolution}px-$imagefilename";
 
@@ -376,12 +414,19 @@ sub showPhotos
 				
 			# link to thumb				
 			print "<a href='images/$item_folder/$imagefilename'><img border=0 src='thumbs/$item_folder/${thumbnailresolution}px-$imagefilename'></a> ";
+			
+			# Increase photo counter:
+			$numberofImages = $numberofImages + 1;
 		}
 		else
 		{
 			push (@otheritemfilenames, $imagefilename);
 			#print "Other file: $imagefilename ";
 		}
+	}
+	if ($numberofImages == 0)
+	{
+	    print "<font color='grey'>none.</font>\n";
 	}
     }
     else
