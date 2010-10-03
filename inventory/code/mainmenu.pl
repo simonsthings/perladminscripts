@@ -156,7 +156,7 @@ foreach my $itemfolder (@allitemfolders)
 				#my $h =  $dbh->do("INSERT INTO history (history_itemuniqueid,history_operation,history_operationtime,history_xmlblob) VALUES ($uniqueID,'CREATE_AUTOWEBDAV',$time,'<td title=\"Item Name\">$itemfolder</td><td title=\"Item Unix Folder\">$itemfolder</td><td title=\"Item Description\">...</td>')");				
 				$dbh->commit();
 				
-				print OUTKFILE "<font color='gray'>(The new item '<a href='itemmenu.pl?itemID=$uniqueID'><font color='gray'>$itemfolder</font></a>' was created in the database because someone created a folder by that name using WebDAV.)</font><br>\n";
+				print OUTKFILE "<font color='gray'>(The new item '<a href='itemmenu.pl?itemID=$uniqueID'><font color='gray'>$itemfolder</font></a>' was created in the database because someone created a folder by that name using the shared network drive.)</font><br>\n";
 		    }
 		    else
 	        {
@@ -254,7 +254,7 @@ foreach my $categoryrowref (@{$categoryrowsref})
 			# Hier wird dann die eigentliche Zeile der HTML-Tabelle ausgegeben:
 			print OUTKFILE "<TR title='item$item_uniqueID: WebDAV Folder https://inventory.isip.uni-luebeck.de/items/$item_folder/' ALIGN='middle' VALIGN='middle' bgcolor='$tablerowbgcolor'>\n";
 
-			print OUTKFILE "<td ALIGN='left'><table border=0><td><a name='item$item_uniqueID' href='$itemfolderlink'>$item_name</a> $item_versionnumber";
+			print OUTKFILE "<td width='33%' ALIGN='left'><table border=0><td><a name='item$item_uniqueID' href='$itemfolderlink'>$item_name</a> $item_versionnumber";
 			if ($item_serialnumber ne "")
 			{
 			    print OUTKFILE ", $item_serialnumber\n";
@@ -262,7 +262,7 @@ foreach my $categoryrowref (@{$categoryrowsref})
 			print OUTKFILE "</td></table></td>\n";
 			
 			# Photos:
-			print OUTKFILE "<td width='40%'>\n";
+			print OUTKFILE "<td width='33%'>\n";
 			
 			listPhotos($item_uniqueID,$item_folder,$itemfolderlink);
 			
@@ -274,7 +274,7 @@ foreach my $categoryrowref (@{$categoryrowsref})
 			my $usedbystring = "";
 			if ($room_name ne "" && $item_shelf ne "") {$colon = ":"}
 			if ($item_currentuser ne "") {$usedbystring = ", used by "};
-			print OUTKFILE "<td width='40%'>$room_name$colon $item_shelf$usedbystring $item_currentuser</td>\n";
+			print OUTKFILE "<td width='33%'>$room_name$colon $item_shelf$usedbystring $item_currentuser</td>\n";
 			
 			# wiki URL:
 			if (length($item_wikiurl) > 0 )

@@ -376,7 +376,7 @@ sub showPhotos
     if (-e "$itemroot/$item_folder")
     {
 
-        $cmd = "ls -1A $itemroot/$item_folder";
+        $cmd = "ls -1 $itemroot/$item_folder";
         my @allitemsfiles = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
         if ($?) {print '<font color="red">Careful here: Listing contents of item folder has not worked! Read the gray screen output to find out why.</font>';};
         # Chopping off the line breaks from all array elements (otherwise the comparison below will not work):

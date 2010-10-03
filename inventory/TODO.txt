@@ -36,31 +36,37 @@ O I want to make a copy of ComboBox!
 -- make history an iFrame (i in i possible?) so that the main window doesn't always have those ugly scrollbars OK
 -- while history is made into separate perl script, also make behaviour for iFrame (itemID provided) and also stand-alone ("recent activity"!) modes. OK
 
+- history of deleted items: use IDs to know what happened to it! OK
+ON THE WAY: repairfolder option 1, create_mmauto works. 
+MISSING: other folderoperations!
+
+- Continue changing to uniqueIDs instead of foldernames. Then folders can be dynamically renamed to always be similar to the current item name. OK
+
+- Rename item folder manually?? NO.
+- Rename item folder automatically each time the item_name is changed! Base loosely on name (without digits or special chars) so people can find the folder intuitively! OK
+
+- Make Itemmenu.pl use the item IDs instead of folders. This would slightly increase robustness to simultaneous edits, especially folder renames during another edit! OK
+-- Mainmenu #-names OK.
+
+
 (mostly) DONE!
 ----------------------------------------------------------------------------------------
 TODO:
 
-- history of deleted items: use IDs to know what happened to it! 
-ON THE WAY: repairfolder option 1, create_mmauto works. 
-MISSING: other folderoperations!
+- use SQL prepare statements everywhere instead of SQL do, to protect against special characters/hacking.
 
-- Continue changing to uniqueIDs instead of foldernames. Then folders can be dynamically renamed to always be similar to the current item name.
+- finish history of other folderoperations.
 
 - Upload Files
 On ItemMenu page...
 
 - Improve usability of Item Creation.
--- Let user give name
+-- Let user give name OK
 -- Allow creation from within itemmenu.pl
 --- checkbox "X New , X Copy, (X Link)"
 
-- Rename item folder manually??
-- Rename item folder automatically each time the item_name is changed! Base loosely on name (without digits or special chars) so people can find the folder intuitively!
-
-- POTENTIAL BUG: Figure converting code exists twice: Different convert rules. Solution: Separate .pl file?
-
-- Make Itemmenu.pl use the item IDs instead of folders. This would slightly increase robustness to simultaneous edits, especially folder renames during another edit!
--- Mainmenu #-names OK.
+- POTENTIAL BUG: Figure converting code exists twice: Different convert rules. Solution: Separate .pl file? For now: moved to sub so easier to track. Also: I want slightly different behviour so double code is ok.
+- POTENTIAL BUG: saveHistory double in folderoperations and in mainmenu. But both as sub and slightly different (user string).
 
 - Place link to webapp in each registered item folder?? And snapshot (write-only) of that item? "iteminfo.txt" with write-only warning and info?
 

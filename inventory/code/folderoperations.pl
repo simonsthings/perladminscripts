@@ -218,6 +218,7 @@ elsif ($itemaction eq "create")
 		print "<br>\n";
 		print "<br>\n";
 		print "The new item has been created! Forwarding to item...<br>\n";
+	        print "<a href='/itemmenu.pl?itemID=$new_item_uniqueID'> Continue to item now! </a> <br>\n";
 	    }
         }                                                                                                                                                                     
 	else                                                                                                                                                                  
@@ -246,6 +247,7 @@ elsif ($itemaction eq "create")
             print "<br>\n";                                                                                                                                                                                                                                               
             print "The item folder \"$actionC_folder\" has been copied to \"$the_next_item_folder\" on the shared network drive!<br>\n";                                                                                                                                           
             print "You can now add photos of the item to it and throw in any other files you like.<br>\n";                                                                                                                                                                
+	    #print "<a href='/itemmenu.pl?itemID=$cgi_item_uniqueID'> Continue to item! </a> <br>\n";
         }                                                                                                                                                                                                                                                                     
 																		    
     }
@@ -255,7 +257,6 @@ elsif ($itemaction eq "create")
 	print "<br>\n";
 	print "Unknown create action. Please choose an option using the option buttons on the previous screen.";
     }
-    
 
 }
 elsif ($itemaction eq "editsave")                                                                                                                                                  
