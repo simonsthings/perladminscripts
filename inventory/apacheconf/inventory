@@ -186,6 +186,7 @@
 	ScriptAlias /deleteitem.pl /var/www/inventory/code/deleteitem.pl
 	ScriptAlias /folderoperations.pl /var/www/inventory/code/folderoperations.pl
 	ScriptAlias /historylist.pl /var/www/inventory/code/historylist.pl
+	ScriptAlias /shrinkoriginalimages.pl /var/www/inventory/code/shrinkoriginalimages.pl
 	#-------------------------End of CGI activation ----------------------------
 	
 	

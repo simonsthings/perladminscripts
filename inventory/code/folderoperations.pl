@@ -275,7 +275,8 @@ elsif ($itemaction eq "editsave")
     { # Name was not changed, so do not rename folder!
     
 	# update DB
-        $rows_affected = $dbh->do("UPDATE items SET item_linkedfolder = '$cgi_item_linkedfolder',item_description='$cgi_item_description',item_state='$cgi_item_state',item_wikiurl='$cgi_item_wikiurl',item_room='$cgi_item_room',item_shelf='$cgi_item_shelf',item_currentuser='$cgi_item_currentuser',item_invoicedate='$cgi_item_invoicedate',item_uniinvnum='$cgi_item_inventorynumber',item_category='$cgi_item_category',item_versionnumber='$cgi_item_versionnumber',item_serialnumber='$cgi_item_serialnumber',item_workgroup='$cgi_item_workgroup',item_responsibleperson='$cgi_item_responsibleperson' WHERE item_uniqueID = '$cgi_item_uniqueID' ;");    
+        my $sth = $dbh->prepare("UPDATE items SET item_linkedfolder = ?, item_description=?,   item_state=?,   item_wikiurl=?,   item_room=?,   item_shelf=?,   item_currentuser=?,   item_invoicedate=?,   item_uniinvnum=?,         item_category=?,   item_versionnumber=?,   item_serialnumber=?,   item_workgroup=?,   item_responsibleperson=? WHERE item_uniqueID = ? ;");    
+        $rows_affected = $sth->execute(      $cgi_item_linkedfolder,$cgi_item_description,$cgi_item_state,$cgi_item_wikiurl,$cgi_item_room,$cgi_item_shelf,$cgi_item_currentuser,$cgi_item_invoicedate,$cgi_item_inventorynumber,$cgi_item_category,$cgi_item_versionnumber,$cgi_item_serialnumber,$cgi_item_workgroup,$cgi_item_responsibleperson,   $cgi_item_uniqueID);
     
         # Save History after change:                                                                                                                                          
         saveHistory($cgi_item_uniqueID,'EDIT_NORMAL');
@@ -288,8 +289,9 @@ elsif ($itemaction eq "editsave")
 	print "The item name has changed. So I am renaming its unix folder from '$db_item_folder' to '$newFoldername'.<br>\n";
 	
 	# update DB
-        $rows_affected = $dbh->do("UPDATE items SET item_folder='$newFoldername',item_name='$cgi_item_name',item_linkedfolder = '$cgi_item_linkedfolder',item_description='$cgi_item_description',item_state='$cgi_item_state',item_wikiurl='$cgi_item_wikiurl',item_room='$cgi_item_room',item_shelf='$cgi_item_shelf',item_currentuser='$cgi_item_currentuser',item_invoicedate='$cgi_item_invoicedate',item_uniinvnum='$cgi_item_inventorynumber',item_category='$cgi_item_category',item_versionnumber='$cgi_item_versionnumber',item_serialnumber='$cgi_item_serialnumber',item_workgroup='$cgi_item_workgroup',item_responsibleperson='$cgi_item_responsibleperson' WHERE item_uniqueID = '$cgi_item_uniqueID' ;");    
-    
+        my $sth = $dbh->prepare("UPDATE items SET item_folder=?,item_name=?, item_linkedfolder=?, item_description=?, item_state=?, item_wikiurl=?, item_room=?, item_shelf=?, item_currentuser=?, item_invoicedate=?, item_uniinvnum=?,       item_category=?, item_versionnumber=?, item_serialnumber=?, item_workgroup=?, item_responsibleperson=? WHERE item_uniqueID = ? ;");
+	$rows_affected = $sth->execute(       $newFoldername,$cgi_item_name,$cgi_item_linkedfolder,$cgi_item_description,$cgi_item_state,$cgi_item_wikiurl,$cgi_item_room,$cgi_item_shelf,$cgi_item_currentuser,$cgi_item_invoicedate,$cgi_item_inventorynumber,$cgi_item_category,$cgi_item_versionnumber,$cgi_item_serialnumber,$cgi_item_workgroup,$cgi_item_responsibleperson,     $cgi_item_uniqueID);
+	
         # Save History after change:                                                                                                                                          
         saveHistory($cgi_item_uniqueID,'EDIT_AUTOFOLDERRENAME');
     }

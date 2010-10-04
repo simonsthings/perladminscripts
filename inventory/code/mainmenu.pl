@@ -197,7 +197,7 @@ foreach my $categoryrowref (@{$categoryrowsref})
 	my $category_name = @categoryrow[1];
 
 	# Get all items for current category (the ending "ref" stands for "reference", so think pointers!):
-	my $allitemrowsref = $dbh->selectall_arrayref("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category , rooms.room_id, rooms.room_number, rooms.room_floor, rooms.room_building, rooms.room_name, item_versionnumber, item_serialnumber, item_workgroup, item_responsibleperson, item_uniqueID FROM items LEFT JOIN rooms ON items.item_room=rooms.room_id WHERE item_category='$category_id' ORDER BY item_name ;");
+	my $allitemrowsref = $dbh->selectall_arrayref("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category , rooms.room_id, rooms.room_number, rooms.room_floor, rooms.room_building, rooms.room_name, item_versionnumber, item_serialnumber, item_workgroup, item_responsibleperson, item_uniqueID FROM items LEFT JOIN rooms ON items.item_room=rooms.room_id WHERE item_category='$category_id' ORDER BY item_name,item_versionnumber,item_serialnumber  ;");
 	
 	my $itemcount = scalar(@{$allitemrowsref});
 	if ($itemcount > 0)
@@ -271,10 +271,12 @@ foreach my $categoryrowref (@{$categoryrowsref})
 
 			# Location & User:
 			my $colon = "";
+			my $semicolon = "";
 			my $usedbystring = "";
-			if ($room_name ne "" && $item_shelf ne "") {$colon = ":"}
-			if ($item_currentuser ne "") {$usedbystring = ", used by "};
-			print OUTKFILE "<td width='33%'>$room_name$colon $item_shelf$usedbystring $item_currentuser</td>\n";
+			if ($room_name ne "" && $item_shelf ne "") {$colon = ": "}
+			if ($room_name ne "" || $item_shelf ne "") {$semicolon = ", "}
+			if ($item_currentuser ne "") {$usedbystring = "${semicolon}used by "};
+			print OUTKFILE "<td width='33%'>$room_name$colon$item_shelf$usedbystring$item_currentuser</td>\n";
 			
 			# wiki URL:
 			if (length($item_wikiurl) > 0 )
@@ -331,9 +333,11 @@ print OUTKFILE "<a href='historylist.pl'> Show complete history of all changes! 
 
 
 print OUTKFILE "<br>";
-print OUTKFILE "<a href='/mainmenu.pl?thumbnailresolution=30' method=\"post\"> Rebuild thumbnails at 30 pixels </a> <br>\n";
-print OUTKFILE "<a href='/mainmenu.pl?thumbnailresolution=48'> Rebuild thumbnails at 48 pixels </a> <br>\n";
+print OUTKFILE "<a href='/mainmenu.pl?thumbnailresolution=30' > Rebuild thumbnails at 30 pixels </a> <br>\n";
+print OUTKFILE "<a href='/mainmenu.pl?thumbnailresolution=48' > Rebuild thumbnails at 48 pixels </a> <br>\n";
 print OUTKFILE "<a href='/mainmenu.pl?thumbnailresolution=100'> Rebuild thumbnails at 100 pixels </a> <br>\n";
+print OUTKFILE "<br>";
+print OUTKFILE "<a href='/shrinkoriginalimages.pl'> Shrink all original images to maximum 2560 pixels width. </a> <br>(To increase speed of the LabTracker after first import of new items.) <br>\n";
 print OUTKFILE "<br>";
 print OUTKFILE "<br>";
 

@@ -185,7 +185,7 @@ if (@itemrow > 0)
 {
     print "<table border=0 width=100%><tr><td>";
     print "<h1>$item_name</h1>";
-    print "</td><td align=right valign=top>";
+    print "</td><td align=right valign=top nowrap>";
     my $prev = $cgi_item_uniqueID - 1;
     my $next = $cgi_item_uniqueID + 1;
     if ($prev==0){$prev=1;}
@@ -402,7 +402,7 @@ sub showPhotos
 			if (!(-e $thumbnailfile))
 			{
 				#`"mkdir \"$itemroot/../thumbs/$item_folder\""`;
-				$cmd = "convert \"$itemroot/$item_folder/$imagefilename\" -resize x$thumbnailresolution \"$thumbnailfile\"";
+				$cmd = "convert \"$itemroot/$item_folder/$imagefilename\" -resize 'x$thumbnailresolution>' \"$thumbnailfile\"";
 				my @outputlines = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
 				
 				if ($?) {print "<pre>@outputlines</pre> <br>\n";print '<font color="red">Careful here: Converting the image has not worked! Read the gray screen output to find out why.</font>';};
