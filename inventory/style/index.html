@@ -1,38 +1,24 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-<HTML>
-<HEAD>
-<TITLE>LabTracker - ISIP Inventory Tracker for Labs</TITLE>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN"
+   "http://www.w3.org/TR/html4/frameset.dtd">
+<html>
+<head>
+<title>LabTracker - ISIP Inventory Tracker for Labs</title>
 <META NAME="Author" CONTENT="Simon Vogt">
-</HEAD>
-
-<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
-<center>
-<font FACE='Times New Roman,serif'>
-<!--font FACE='Helvetica, Arial, Verdana, Tahoma'-->
-
-<font size=500>LabTracker</font><br>
-<font size=5>ISIP Inventory Tracker for Labs</font><br>
-<br>
-<font size=2 color=grey>(<a href='http://en.wikipedia.org/wiki/WebDAV#Implementations'>Mount</a> <i><b>https://inventory.isip.uni-luebeck.de/items/</b></i>          
-as a network drive for uploading images and other files using drag&drop)</font><br>
-   
-<!--
-<A HREF="/"><IMG SRC="labtracker_logo.jpg" BORDER=0></A>
-<A HREF="https://wiki.isip.uni-luebeck.de/HowTo/UseSubversion"><IMG SRC="isip-noframe64.png" BORDER=0></A><br>
-
-<A HREF="http://sourcecode.isip.uni-luebeck.de/svnindex.html" target="svniframe">SVN Home</A> |
-<A HREF="http://sourcecode.isip.uni-luebeck.de/viewvc" target="svniframe">Browse</A> |
-<A HREF="http://sourcecode.isip.uni-luebeck.de/accessprojects.pl" target="svniframe">Access</A> |
-<A HREF="http://sourcecode.isip.uni-luebeck.de/createproject.html" target="svniframe">Create</A> |
-<A HREF="http://sourcecode.isip.uni-luebeck.de/adminproject.html" target="svniframe">Settings</A>
--->
-
-<iframe src="mainmenu.html" name="labtrackeriframe" width="98%" height="80%" frameborder="0" >
-Your browser does not support iframes! Please just visit <A HREF="mainmenu.html">this page</A> instead.
-</iframe>
-
-</center>
-</BODY>
-</HTML>
-
+</head>
+<frameset rows="120,*,20">  <!-- Frameset-Definition -->
+  <frame noresize marginheight=2 frameborder=0 src="style/frame-header.html" name="Header" scrolling=no>
+  <frameset cols="10,*,10">  <!-- Frameset-Definition -->
+    <frame noresize marginheight=2 frameborder=0 src="style/frame-left.html" name="Left" scrolling=no>
+    <frame noresize marginheight=2 frameborder=0 src="mainmenu.html" name="List">   
+    <frame noresize marginheight=2 frameborder=0 src="style/frame-right.html" name="Right" scrolling=no>
+  </frameset>
+  <frame noresize marginheight=0 frameborder=0 src="style/frame-footer.html" name="Footer" scrolling=no>   
+  <noframes>
+    <body>
+      <h1>No Frames?</h1>
+      <p>Just go to <a href='mainmenu.html'>mainmenu.html</a> directly.</p>
+    </body>
+  </noframes>
+</frameset>
+</html>
 

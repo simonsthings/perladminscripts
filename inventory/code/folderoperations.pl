@@ -21,8 +21,8 @@ my $createaction = $cgi->param('createaction');
 my $deleteaction = $cgi->param('deleteaction');
 my $actionA_itemID = $cgi->param('actionA_itemID');
 my $actionB_itemID = $cgi->param('actionB_itemID');
-my $actionC_folder = $cgi->param('actionC_folder');
-my $actionD_folder = $cgi->param('actionD_folder');
+my $actionC_itemID = $cgi->param('actionC_itemID');
+my $actionD_itemID = $cgi->param('actionD_itemID');
 
 #my $item_folder = $cgi->param('itemfolder');
 my $cgi_item_uniqueID = $cgi->param('itemID');
@@ -49,21 +49,21 @@ my $cmdoutput;
 
 my @itemrow = $dbh->selectrow_array("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber FROM items WHERE item_uniqueID='$cgi_item_uniqueID';");
 my $dbid_item_folder = @itemrow[0];
-my $dbid_item_linkedfolder = @itemrow[1];
+#my $dbid_item_linkedfolder = @itemrow[1];
 my $dbid_item_name = @itemrow[2];
-my $dbid_item_description = @itemrow[3];
-my $dbid_item_state = @itemrow[4];
-my $dbid_item_wikiurl = @itemrow[5];
-my $dbid_item_room = @itemrow[6];
-my $dbid_item_shelf = @itemrow[7];
-my $dbid_item_currentuser = @itemrow[8];
-my $dbid_item_invoicedate = @itemrow[9];
-my $dbid_item_inventorynumber = @itemrow[10];
-my $dbid_item_category = @itemrow[11];
-my $dbid_item_versionnumber = @itemrow[12];
-my $dbid_item_serialnumber = @itemrow[13];
-my $dbid_item_workgroup = @itemrow[14];
-my $dbid_item_responsibleperson = @itemrow[15];
+#my $dbid_item_description = @itemrow[3];
+#my $dbid_item_state = @itemrow[4];
+#my $dbid_item_wikiurl = @itemrow[5];
+#my $dbid_item_room = @itemrow[6];
+#my $dbid_item_shelf = @itemrow[7];
+#my $dbid_item_currentuser = @itemrow[8];
+#my $dbid_item_invoicedate = @itemrow[9];
+#my $dbid_item_inventorynumber = @itemrow[10];
+#my $dbid_item_category = @itemrow[11];
+#my $dbid_item_versionnumber = @itemrow[12];
+#my $dbid_item_serialnumber = @itemrow[13];
+#my $dbid_item_workgroup = @itemrow[14];
+#my $dbid_item_responsibleperson = @itemrow[15];
 
 
 print "Content-type: text/html\n\n";
@@ -137,9 +137,16 @@ if ($itemaction eq "repair")
     }
     elsif ($repairaction eq "C")
     {
-	print "<h3>I want to copy the contents of the folder \"$actionD_folder\"!</h3>\n";
-	print "Copying the folder \"$actionC_folder\" to \"$dbid_item_folder\" in the shared network drive...";
-	$cmd = "cp \"$itemroot/$actionC_folder\" \"$itemroot/$dbid_item_folder\" -R -v";
+    	# Get Name and Folder of item that is to be copied:
+        my $sth = $dbh->prepare("SELECT item_name,item_folder,item_uniqueID FROM items WHERE item_uniqueID = ? ;");
+        my @itemToCopyRow = $sth->selectrow_array($actionC_itemID);
+	my $orig_item_name = @itemToCopyRow[0];
+	my $orig_item_folder = @itemToCopyRow[1];
+	my $orig_item_uniqueID = @itemToCopyRow[2];
+    
+	print "<h3>I want to copy the contents of item \"$orig_item_name\" (folder '\"$orig_item_folder\"')!</h3>\n";
+	print "Copying the folder \"$orig_item_folder\" to \"$dbid_item_folder\" in the shared network drive...";
+	$cmd = "cp \"$itemroot/$orig_item_folder\" \"$itemroot/$dbid_item_folder\" -R -v";
 	my @mkdirerror = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
 	if ($?) {print "<pre>@mkdirerror</pre> <br>\n";print '<font color="red">Careful here: Creating the item folder $dbid_item_folder has not worked! Read the gray screen output to find out why.</font>';}
 	else
@@ -147,13 +154,13 @@ if ($itemaction eq "repair")
 		print "<pre>@mkdirerror</pre> <br>\n";
 		print "OK!<br>\n";
 		print "<br>\n";
-		print "The item folder \"$actionC_folder\" has been copied to \"$dbid_item_folder\" on the shared network drive!<br>\n";
+		print "The item folder \"$orig_item_folder\" has been copied to \"$dbid_item_folder\" on the shared network drive!<br>\n";
 		print "You can now add photos of the item to it and throw in any other files you like.<br>\n";
 	}
     }
     elsif ($repairaction eq "D")
     {
-	print "<h3>I want to link this item to the folder \"$actionD_folder\"!</h3>\n";
+	print "<h3>I want to link this item to some other folder!</h3>\n";
 	print "This repair action is not implemented yet!";
     }
     elsif ($repairaction eq "E")
@@ -190,7 +197,7 @@ elsif ($itemaction eq "create")
 	
 	print "Creating the item '$cgi_item_name' in the database.";
 	# update DB
-        my $rows_affected = $dbh->do("INSERT INTO items(item_folder,item_name,item_category) VALUES ('$a_next_item_folder','$cgi_item_name','0');");    
+        my $rows_affected = $dbh->do("INSERT INTO items(item_folder,item_name,item_category,item_state) VALUES ('$a_next_item_folder','$cgi_item_name','0','Functional');");    
 	if ($dbh->err()) { die "$DBI::errstr\n"; }
 	my $dberror = "$DBI::errstr\n";
 	
@@ -230,14 +237,60 @@ elsif ($itemaction eq "create")
     }
     elsif ($createaction eq "C")
     {
-	$actionC_folder =~ m/^(\w*\D)(\d*)$/;
-	my $folderbase = $1 ;
-	if ($folderbase eq "") {$folderbase = "item";} # if the matching totally fails.
+#    print "$actionC_itemID";
+	# Get all data of item that is to be copied:
+	my $origsth = $dbh->prepare("SELECT item_folder,item_linkedfolder,item_name,item_description,item_state,item_wikiurl,item_room,item_shelf,item_currentuser,item_invoicedate,item_uniinvnum,item_category,item_versionnumber,item_serialnumber,item_workgroup,item_responsibleperson FROM items WHERE item_uniqueID= ? ;");
+	$origsth->execute($actionC_itemID);
+	my @origitemrow = $origsth->fetchrow_array();
+	my $orig_item_folder = @origitemrow[0];
+	my $orig_item_linkedfolder = @origitemrow[1];
+	my $orig_item_name = @origitemrow[2];
+	my $orig_item_description = @origitemrow[3];
+	my $orig_item_state = @origitemrow[4];
+	my $orig_item_wikiurl = @origitemrow[5];
+	my $orig_item_room = @origitemrow[6];
+	my $orig_item_shelf = @origitemrow[7];
+	my $orig_item_currentuser = @origitemrow[8];
+	my $orig_item_invoicedate = @origitemrow[9];
+	my $orig_item_inventorynumber = @origitemrow[10];
+	my $orig_item_category = @origitemrow[11];
+	my $orig_item_versionnumber = @origitemrow[12];
+	my $orig_item_serialnumber = @origitemrow[13];
+	my $orig_item_workgroup = @origitemrow[14];
+	my $orig_item_responsibleperson = @origitemrow[15];
+
+	print "Orig_Name: $orig_item_name, Orig_Workgroup: $orig_item_workgroup <br>\n";
+	
+#	die;
+
+	# update DB
+#        my $sth = $dbh->prepare("UPDATE items SET item_folder=?,item_name=?, item_linkedfolder=?, item_description=?, item_state=?, item_wikiurl=?, item_room=?, item_shelf=?, item_currentuser=?, item_invoicedate=?, item_uniinvnum=?,       item_category=?, item_versionnumber=?, item_serialnumber=?, item_workgroup=?, item_responsibleperson=? WHERE item_uniqueID = ? ;");
+#	$rows_affected = $sth->execute(       $newFoldername,$cgi_item_name,$cgi_item_linkedfolder,$cgi_item_description,$cgi_item_state,$cgi_item_wikiurl,$cgi_item_room,$cgi_item_shelf,$cgi_item_currentuser,$cgi_item_invoicedate,$cgi_item_inventorynumber,$cgi_item_category,$cgi_item_versionnumber,$cgi_item_serialnumber,$cgi_item_workgroup,$cgi_item_responsibleperson,     $cgi_item_uniqueID);
+	
+        # Save History after change:                                                                                                                                          
+#        saveHistory($cgi_item_uniqueID,'EDIT_AUTOFOLDERRENAME');
+	
+
+#	$actionC_folder =~ m/^(\w*\D)(\d*)$/;
+#	my $folderbase = $1 ;
+#	if ($folderbase eq "") {$folderbase = "item";} # if the matching totally fails.
 	#print "bla = $folderbase"; 
-	my $the_next_item_folder = findNextFoldername("$folderbase");
-        print "<h3>I want to make a  copy of the item \"$actionC_folder\"!</h3>\n";                                                                                                                                                                                    
-        print "Copying the folder \"$actionC_folder\" to \"$the_next_item_folder\" in the shared network drive...";                                                                                                                                                                    
-        $cmd = "cp \"$itemroot/$actionC_folder\" \"$itemroot/$the_next_item_folder\" -R -v";                                                                                                                                                                                           
+#	my $the_next_item_folder = findNextFoldername("$folderbase");
+
+	my $new_item_name;
+	if ($cgi_item_name eq "")
+	{
+	    $new_item_name = "$orig_item_name Copy";
+	}
+	else
+	{
+	    $new_item_name = $cgi_item_name;
+	}
+
+	my $the_next_item_folder = reduceNameToUnixFolder($new_item_name);
+        print "<h3>I want to make a  copy of the item \"$orig_item_name\" (folder '$orig_item_folder')!</h3>\n";                                                                                                                                                                                    
+        print "Copying the folder \"$orig_item_folder\" to \"$the_next_item_folder\" in the shared network drive...";                                                                                                                                                                    
+        $cmd = "cp \"$itemroot/$orig_item_folder\" \"$itemroot/$the_next_item_folder\" -R -v";                                                                                                                                                                                           
         my @mkdirerror = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.                                                                                                                                                                         
         if ($?) {print "<pre>@mkdirerror</pre> <br>\n";print '<font color="red">Careful here: Creating the item folder $dbid_item_folder has not worked! Read the gray screen output to find out why.</font>';}                                                                    
         else                                                                                                                                                                                                                                                                  
@@ -245,8 +298,10 @@ elsif ($itemaction eq "create")
             print "<pre>@mkdirerror</pre> <br>\n";                                                                                                                                                                                                                        
             print "OK!<br>\n";                                                                                                                                                                                                                                            
             print "<br>\n";                                                                                                                                                                                                                                               
-            print "The item folder \"$actionC_folder\" has been copied to \"$the_next_item_folder\" on the shared network drive!<br>\n";                                                                                                                                           
+            print "The item folder \"$orig_item_folder\" has been copied to \"$the_next_item_folder\" on the shared network drive!<br>\n";                                                                                                                                           
             print "You can now add photos of the item to it and throw in any other files you like.<br>\n";                                                                                                                                                                
+	    print "<br><br>Folder was created on the drive.<br>";	    
+	    print "Implementation needs to be continued to actually copy the database entries ;-)<br>\n";
 	    #print "<a href='/itemmenu.pl?itemID=$cgi_item_uniqueID'> Continue to item! </a> <br>\n";
         }                                                                                                                                                                                                                                                                     
 																		    
@@ -426,6 +481,7 @@ sub reduceNameToUnixFolder
         # handle awful item names:
 	$given_itemname = "weirditem";
     }
+    
     # Throw away special characters:
     $given_itemname =~ s/[^\w]//g;
     

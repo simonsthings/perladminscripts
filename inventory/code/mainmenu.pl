@@ -24,6 +24,23 @@ my $cgi_item_uniqueID = $cgi->param('itemID');
 my $cmd;
 my $cmdoutput;
 
+
+
+# This page needs to also send something to the client. Make a page that redirects!
+print "Content-type: text/html\n\n";
+print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
+print "<html><head><title>LabTracker - Main Menu</title>";
+print "<meta HTTP-EQUIV=\"REFRESH\" content=\"0; url=/$mainmenucache#item$cgi_item_uniqueID\">";                                                                              
+#print "</head></html>";
+print "</head><body link='#000000' vlink='#000000' alink='blue' bgcolor='#E0E0E0'>\n";
+print "<font color=grey FACE='Helvetica, Arial, Verdana, Tahoma'>";
+print "<h3>Generating main menu...</h3>\n";
+print "Please wait...<br>\n";
+print "<br>\n";
+print "If you or someone else just added many new folders to the shared network drive, this might even take a few minutes while the thumbnail images are being made!";
+print "</body></html>";
+
+
 open(OUTKFILE, "> $docroot/$mainmenucache") or die "Can't write to file $mainmenucache: $!";
 
 # Make HTML header:
@@ -54,11 +71,13 @@ print OUTKFILE "<br>";
 #################
 
 # Rebuild thumbnail images?
-my  $thumbnailresolution 		= $cgi->param('thumbnailresolution');
+my $thumbnailresolution 		= $cgi->param('thumbnailresolution');
+my $thumbbuildtime = 0;
 if (!(defined $thumbnailresolution)){$thumbnailresolution = "48"} # may lead to differently sized icons for new items if old ones are non-48. But who cares?
 else 
 {
-	print OUTKFILE "<font color='gray'>(Rebuilding thumbnails at height $thumbnailresolution px!)</font><br>\n";
+	$thumbbuildtime = time();
+	print OUTKFILE "<font color='gray'>(Rebuilt thumbnails at height $thumbnailresolution px!)</font><br>\n";
 	# execute the delete command
 	$cmd = "rm $itemroot/../thumbs/ -R";
 	my @mkdirerror = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page.
@@ -291,11 +310,11 @@ foreach my $categoryrowref (@{$categoryrowsref})
 			# State:			
 			print OUTKFILE "<td>";
 			if ($item_state eq "Functional")
-				{print OUTKFILE "<img src='/style/lights_green.png' alt='$item_state'>";}
+				{print OUTKFILE "<img src='/style/lights_green.png' alt='$item_state' title='$item_state'>";}
 			elsif ($item_state eq "Destroyed")
-				{print OUTKFILE "<img src='/style/lights_red.png' alt='$item_state'>";}
+				{print OUTKFILE "<img src='/style/lights_red.png' alt='$item_state' title='$item_state'>";}
 			else
-				{print OUTKFILE "<img src='/style/lights_yellow.png' alt='$item_state'>";}
+				{print OUTKFILE "<img src='/style/lights_yellow.png' alt='$item_state' title='$item_state'>";}
 			print OUTKFILE "</td>\n";
 			
 			print OUTKFILE "</tr>\n";
@@ -333,11 +352,22 @@ print OUTKFILE "<a href='historylist.pl'> Show complete history of all changes! 
 
 
 print OUTKFILE "<br>";
+if ($thumbbuildtime > 0)
+{
+    my $nowtime = time();
+    my $timediff = $nowtime - $thumbbuildtime;
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($timediff);    
+    my $hoursstring = "";
+    if ($hour > 0) {$hoursstring = "$hour hours, ";}
+    #print OUTKFILE "Rebuilding the thumbnails at $thumbnailresolution pixels took $hoursstring$min minutes and $sec seconds. <br>\n";
+    print OUTKFILE "Rebuilding the thumbnails at $thumbnailresolution pixels took $timediff seconds. <br>\n";
+}
 print OUTKFILE "<a href='/mainmenu.pl?thumbnailresolution=30' > Rebuild thumbnails at 30 pixels </a> <br>\n";
 print OUTKFILE "<a href='/mainmenu.pl?thumbnailresolution=48' > Rebuild thumbnails at 48 pixels </a> <br>\n";
 print OUTKFILE "<a href='/mainmenu.pl?thumbnailresolution=100'> Rebuild thumbnails at 100 pixels </a> <br>\n";
 print OUTKFILE "<br>";
-print OUTKFILE "<a href='/shrinkoriginalimages.pl'> Shrink all original images to maximum 2560 pixels width. </a> <br>(To increase speed of the LabTracker after first import of new items.) <br>\n";
+print OUTKFILE "<a href='/shrinkoriginalimages.pl'> Shrink all original images to maximum 2560 pixels width. </a> <br>";
+print OUTKFILE "(To increase speed of the LabTracker after import of many new items.) <br>\n";
 print OUTKFILE "<br>";
 print OUTKFILE "<br>";
 
@@ -347,21 +377,6 @@ print OUTKFILE "This page was generated at $timestring .<br>\n";
 print OUTKFILE "</body></html>\n";
 
 close(OUTKFILE);
-
-# This page needs to also send something to the server. Make a page that redirects!
-print "Content-type: text/html\n\n";
-print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
-print "<html><head><title>LabTracker - Main Menu</title>";
-print "<meta HTTP-EQUIV=\"REFRESH\" content=\"0; url=/$mainmenucache#item$cgi_item_uniqueID\">";                                                                              
-print "</head>";
-#print "<body>";
-#print "<h1>here now:</h1>";
-#print OUTKFILE "out: $ENV{QUERY_STRING}";
-#foreach my $key (keys %ENV) {#                                                                                                                             
-#       print "$key --> $ENV{$key}<br>";                                                                                                             
-#}                                     
-#print "</body>";
-print "</html>";
 
 
 

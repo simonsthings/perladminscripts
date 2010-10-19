@@ -31,16 +31,16 @@ print "<h1>Create New Item:</h1>\n";
 
 
 # Action C ComboBox: All Items
-my $selallitems = $dbh->prepare("SELECT item_name,item_folder,item_uniqueID FROM items WHERE item_category != '0';");
+my $selallitems = $dbh->prepare("SELECT item_name,item_folder,item_uniqueID FROM items WHERE item_category != '0' ORDER BY item_name ;");
 if ($selallitems->err()) { die "$DBI::errstr\n"; }
 $selallitems->execute();
 my $actionCComboboxAllItems = "<select name='actionC_itemID' size='1'>\n";
 while(my @row = $selallitems->fetchrow_array())
 {
 	if (@row[1] eq @row[0])
-	{$actionCComboboxAllItems .= "<option value=@row[2]>@row[1]</option>\n";}
+	{$actionCComboboxAllItems .= "<option value=@row[2]>@row[0]</option>\n";}
 	else
-	{$actionCComboboxAllItems .= "<option value=@row[2]>@row[1] (\"@row[0]\")</option>\n";}
+	{$actionCComboboxAllItems .= "<option value=@row[2]>@row[0] (\"@row[1]\")</option>\n";}
 }
 $actionCComboboxAllItems .= "</select>";
 

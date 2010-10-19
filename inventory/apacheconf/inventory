@@ -1,51 +1,39 @@
 <VirtualHost *:80>
 	ServerName inventory
+	ServerAlias inventar
+	ServerAlias inventur
+	ServerAlias kram
+	ServerAlias krams
+	ServerAlias stuff
+	ServerAlias labtracker
+	ServerAlias inventory.isip.uni-luebeck.de
+	ServerAlias inventar.isip.uni-luebeck.de
+	ServerAlias inventur.isip.uni-luebeck.de
+	ServerAlias kram.isip.uni-luebeck.de
+	ServerAlias krams.isip.uni-luebeck.de
+	ServerAlias stuff.isip.uni-luebeck.de
+	ServerAlias labtracker.isip.uni-luebeck.de
+	
 	Redirect / https://inventory.isip.uni-luebeck.de/
 </VirtualHost>
 
-<VirtualHost *:80>
-	ServerName inventar
+<VirtualHost *:443>
+	ServerName inventory
+	ServerAlias inventar
+	ServerAlias inventur
+	ServerAlias kram
+	ServerAlias krams
+	ServerAlias stuff
+	ServerAlias labtracker
+	#ServerAlias inventory.isip.uni-luebeck.de
+	ServerAlias inventar.isip.uni-luebeck.de
+	ServerAlias inventur.isip.uni-luebeck.de
+	ServerAlias kram.isip.uni-luebeck.de
+	ServerAlias krams.isip.uni-luebeck.de
+	ServerAlias stuff.isip.uni-luebeck.de
+	ServerAlias labtracker.isip.uni-luebeck.de
+	
 	Redirect / https://inventory.isip.uni-luebeck.de/
-</VirtualHost>
-
-<VirtualHost *:80>
-	ServerName inventur
-	Redirect / https://inventory.isip.uni-luebeck.de/
-</VirtualHost>
-
-<VirtualHost *:80>
-	ServerName kram
-	Redirect / https://inventory.isip.uni-luebeck.de/
-</VirtualHost>
-
-<VirtualHost *:80>
-	ServerName stuff
-	Redirect / https://inventory.isip.uni-luebeck.de/
-</VirtualHost>
-
-<VirtualHost *:80>
-        ServerName inventory.isip.uni-luebeck.de
-        Redirect / https://inventory.isip.uni-luebeck.de/
-</VirtualHost>
-
-<VirtualHost *:80>
-        ServerName inventar.isip.uni-luebeck.de
-        Redirect / https://inventory.isip.uni-luebeck.de/
-</VirtualHost>
-
-<VirtualHost *:80>
-        ServerName inventur.isip.uni-luebeck.de
-        Redirect / https://inventory.isip.uni-luebeck.de/
-</VirtualHost>
-
-<VirtualHost *:80>
-        ServerName kram.isip.uni-luebeck.de
-        Redirect / https://inventory.isip.uni-luebeck.de/
-</VirtualHost>
-
-<VirtualHost *:80>
-        ServerName stuff.isip.uni-luebeck.de
-        Redirect / https://inventory.isip.uni-luebeck.de/
 </VirtualHost>
 
 
@@ -79,7 +67,7 @@
 
 		# Alle Dateien als Plain Text zurückgegeben,
 		# auch Skripte
-		ForceType text/plain
+		#ForceType text/plain
 
 		# Benutzerauthentifizierung
 		#AuthType Basic
