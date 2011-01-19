@@ -31,7 +31,7 @@ print "Content-type: text/html\n\n";
 print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
 print "<html><head>";
 print "<meta http-equiv='refresh' content='10'>";
-print "<title>Start Trac and SVN server</title></head><body bgcolor='#FFFFFF'>\n";
+print "<title>Copy Subversion URLs..</title></head><body bgcolor='#FFFFFF'>\n";
 print "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
 print "<center>";
 print "<h1>Accessing your SVN repository</h1>\n";

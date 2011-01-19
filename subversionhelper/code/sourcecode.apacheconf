@@ -1,0 +1,209 @@
+<VirtualHost *:80>
+	ServerName sourcecode
+	ServerAlias code
+	ServerAlias subversion
+	ServerAlias svn
+	ServerAlias cvs
+	ServerAlias sourcecode.isip.uni-luebeck.de
+	ServerAlias code.isip.uni-luebeck.de
+	ServerAlias subversion.isip.uni-luebeck.de
+	ServerAlias svn.isip.uni-luebeck.de
+	ServerAlias cvs.isip.uni-luebeck.de
+	
+	Redirect / https://sourcecode.isip.uni-luebeck.de/
+</VirtualHost>
+
+<VirtualHost *:443>
+	ServerName sourcecode
+	ServerAlias code
+	ServerAlias subversion
+	ServerAlias svn
+	ServerAlias cvs
+	#ServerAlias sourcecode.isip.uni-luebeck.de
+	ServerAlias code.isip.uni-luebeck.de
+	ServerAlias subversion.isip.uni-luebeck.de
+	ServerAlias svn.isip.uni-luebeck.de
+	ServerAlias cvs.isip.uni-luebeck.de
+	
+	Redirect / https://sourcecode.isip.uni-luebeck.de/
+</VirtualHost>
+
+
+<VirtualHost *:443>
+	ServerName sourcecode.isip.uni-luebeck.de
+	#ErrorDocument 401 fgsdfgsdfgs 
+	#ErrorDocument 403 /var/www/sourcecode/403.html
+	DocumentRoot /var/www/sourcecode
+	DirectoryIndex index.html
+	ErrorLog /var/log/apache2/soucecode_error.log
+
+        # SSL:
+        # SSL has been configured for all sites in /etc/apache2/sites-availabe/default
+        ##SSLEngine On
+        ##SSLCACertificateFile /etc/apache2/ssl/cacert-chain.txt
+        ##SSLCertificateFile /etc/apache2/ssl/auxus.cert
+        ##SSLCertificateKeyFile /etc/apache2/ssl/auxus.pem
+
+	<LocationMatch "/index.html">
+#	    AuthType Basic
+#	    AuthName "Subversion Browsing: Please enter your ISIP LDAP password"
+#	    AuthLDAPEnabled on
+#	    AuthLDAPAuthoritative on
+#	    AuthLDAPURL ldaps://shannon/dc=isip,dc=uni-luebeck,dc=de?uid
+#	    Require any	
+	</LocationMatch>	
+	<LocationMatch "/svnindex.html">
+#	    AuthType Basic
+#	    AuthName "Subversion Browsing: Please enter your ISIP LDAP password"
+#	    AuthLDAPEnabled on
+#	    AuthLDAPAuthoritative on
+#	    AuthLDAPURL ldaps://shannon/dc=isip,dc=uni-luebeck,dc=de?uid
+#	    Require any
+	</LocationMatch>	
+
+
+
+	<Location "/">
+#	    AuthType Basic
+#	    AuthName "Subversion Browsing: Please enter your ISIP LDAP password"
+#	    AuthLDAPEnabled on
+#	    AuthLDAPAuthoritative on
+#	    AuthLDAPURL ldaps://shannon/dc=isip,dc=uni-luebeck,dc=de?uid
+#	    Require valid-user	
+	</Location>
+
+
+
+	#------- Allow CGI scripts for creating new repositories and such ----------
+	ScriptAlias /accessprojects.pl /var/www/sourcecode/accessprojects.pl
+	ScriptAlias /createproject.pl /var/www/sourcecode/createproject.pl
+	
+	Alias /createproject.html /var/www/sourcecode/createproject.html
+	<LocationMatch /(createproject\.html|createproject\.pl|accessprojects\.pl)>
+	    #SVNParentPath /srv/repositories/svn
+	    AuthType Basic
+	    AuthName "Subversion Browsing: Please enter your ISIP LDAP password"
+	    AuthLDAPEnabled on
+	    AuthLDAPAuthoritative on
+	    AuthLDAPURL ldaps://shannon/dc=isip,dc=uni-luebeck,dc=de?uid
+	    Require valid-user
+	</LocationMatch>	
+	#-------------------------End of CGI activation ----------------------------
+
+
+	#------------------ Subversion HTTP access configuration -------------------
+
+	# dav_svn.conf - Example Subversion/Apache configuration
+	#
+	# For details and further options see the Apache user manual and
+	# the Subversion book.
+
+	# <Location URL> ... </Location>
+	# URL controls how the repository appears to the outside world.
+	# In this example clients access the repository as http://hostname/svn/
+	<Location /svn>
+
+	  # Uncomment this to enable the repository,
+	  # DAV svn
+
+	  # Set this to the path to your repository
+	  # SVNPath /var/lib/svn
+
+	  # The following allows for basic http authentication.  Basic authentication
+	  # should not be considered secure for any particularly rigorous definition of
+	  # secure.
+
+	  # to create a passwd file
+	  # # rm -f /etc/apache2/dav_svn.passwd 
+	  # # htpasswd2 -c /etc/apache2/dav_svn.passwd dwhedon
+	  # New password: 
+	  # Re-type new password: 
+	  # Adding password for user dwhedon
+	  # #
+
+	  # Uncomment the following 3 lines to enable Basic Authentication
+	  # AuthType Basic
+	  # AuthName "Subversion Repository"
+	  # AuthUserFile /etc/apache2/dav_svn.passwd
+
+	  # Uncomment the following line to enable Authz Authentication
+	  # AuthzSVNAccessFile /etc/apache2/dav_svn.authz
+
+	  # The following three lines allow anonymous read, but make
+	  # committers authenticate themselves.
+
+	   <LimitExcept GET PROPFIND OPTIONS REPORT>
+	     Require valid-user
+	   </LimitExcept> 
+
+	  DAV svn
+
+	  SVNParentPath /srv/repositories/svn/
+	  #SVNPath /srv/repositories/svn/testrepository
+	  #SVNParentPath /srv/svn
+
+	  AuthType Basic
+	  AuthName "Subversion Write Access: Please enter your ISIP LDAP password"
+	  AuthLDAPEnabled on
+	  AuthLDAPAuthoritative on
+	  AuthLDAPURL ldaps://shannon/dc=isip,dc=uni-luebeck,dc=de?uid
+	  AuthzSVNAccessFile /etc/svn-users
+	  Require valid-user
+
+	</Location>
+	#------------ End of Subversion HTTP access configuration -------------
+
+
+
+	#----------------- ViewVC (source code browser) config ----------------
+	ScriptAlias /viewvc /opt/viewvc/bin/cgi/viewvc.cgi
+	ScriptAlias /query  /opt/viewvc/bin/cgi/query.cgi
+
+
+	<LocationMatch "/viewvc/*docroot*">
+	    SVNParentPath /srv/repositories/svn
+	    AuthType Basic
+	    AuthName "Subversion Browsing: Please enter your ISIP LDAP password"
+	    AuthLDAPEnabled on
+	    AuthLDAPAuthoritative on
+	    AuthLDAPURL ldaps://shannon/dc=isip,dc=uni-luebeck,dc=de?uid
+	    Require valid-user
+	    #AuthzSVNAccessFile /etc/svn-users
+	</LocationMatch>
+	
+	<LocationMatch "/viewvc/">
+	    SVNParentPath /srv/repositories/svn
+	    AuthType Basic
+	    AuthName "Subversion Browsing: Please enter your ISIP LDAP password"
+	    AuthLDAPEnabled on
+	    AuthLDAPAuthoritative on
+	    AuthLDAPURL ldaps://shannon/dc=isip,dc=uni-luebeck,dc=de?uid
+	    Require valid-user
+	    AuthzSVNAccessFile /etc/svn-users
+	</LocationMatch>
+
+	<LocationMatch "/viewvc$">
+	    SVNParentPath /srv/repositories/svn
+	    AuthType Basic
+	    AuthName "Subversion Browsing: Please enter your ISIP LDAP password"
+	    AuthLDAPEnabled on
+	    AuthLDAPAuthoritative on
+	    AuthLDAPURL ldaps://shannon/dc=isip,dc=uni-luebeck,dc=de?uid
+	    Require valid-user
+	    #AuthzSVNAccessFile /etc/svn-users
+	</LocationMatch>
+	
+
+	<Location "/query/">
+	    SVNParentPath /srv/repositories/svn
+	    AuthType Basic
+	    AuthName "Subversion Browsing: Please enter your ISIP LDAP password"
+	    AuthLDAPEnabled on
+	    AuthLDAPAuthoritative on
+	    AuthLDAPURL ldaps://shannon/dc=isip,dc=uni-luebeck,dc=de?uid
+	    Require valid-user
+	    AuthzSVNAccessFile /etc/svn-users
+	</Location>
+	#---------------------- End of ViewVC config --------------------------
+
+</VirtualHost>
