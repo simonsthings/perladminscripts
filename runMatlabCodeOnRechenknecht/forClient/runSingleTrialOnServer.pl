@@ -3,6 +3,7 @@
 use strict;           # Make us need to declare each variable for easier error tracking
 use Cwd;
 
+my $remotefolder = "/home/simon/Work/Projects/Simulations/remote/";
 my $cmd;
 my @cmdoutput;
 my $currDir = cwd;
@@ -20,7 +21,7 @@ my ($nextServer,$minLoad) = findNextServer();
 print "Detected free server (load: $minLoad%): $nextServer \n";
 
 # Send .tgz file to server:
-my $serverURI = "$nextServer.isip.uni-luebeck.de:/home/simon/Work/Projects/Simulations/remote/";
+my $serverURI = "$nextServer.isip.uni-luebeck.de:$remotefolder";
 $cmd = "scp m-files.tgz $serverURI";
 print "Uploading m-files.tgz package to $serverURI ...\n";
 @cmdoutput = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page. 
@@ -29,17 +30,16 @@ print "@cmdoutput";
 print "Upload seems to have been successful!\n\n";
 
 # execute script on server:
-$cmd = "ssh -n $nextServer.isip.uni-luebeck.de \"cd /home/simon/Work/Projects/Simulations/remote/ ; controlscripts/run_singletrail.pl\" ";
+$cmd = "ssh -n $nextServer.isip.uni-luebeck.de \"cd $remotefolder ; controlscripts/run_singletrail.pl\" ";
 print "Executing startup script on the server ...\n";
 @cmdoutput = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page. 
 if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why.\n';};
 print "@cmdoutput";
-print "The simulation seems to have been started successfully!\n\n";
-#ssh ... nohup
+print "The simulation seems to have been started successfully!\n";
 
-#controlscripts/run_singletrail.pl
+## End of script. ##
 
-
+## Helper functions: ##
 sub findNextServer
 {
 
