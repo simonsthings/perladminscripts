@@ -51,7 +51,7 @@ print "@cmdoutput";
 chdir("$folder/codeandinputdata");
 print "Now in folder " . cwd . "\n";
 
-$cmd = "nohup /usr/local/bin/matlab -nodisplay -r remoteMain.m > ../results/screenoutput.txt &";
+$cmd = "nohup /usr/local/bin/matlab -nodisplay -r remoteMain.m > ../results/screenoutput.txt  2> ../results/screenerrors.txt &";
 print "$cmd\n";
 @cmdoutput = `$cmd 2>&1`;
 if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};

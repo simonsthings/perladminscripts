@@ -19,6 +19,8 @@ print "Working in $cwd\n";
 my $simtype = "singletrials";
 
 $cmd = "ls -1 $simtype/";
+# show last 20 entries or all if wanted:
+if ( ($#ARGV == -1) || ($ARGV[0] ne "-a") ) {$cmd .= " | tail -n 20";}
 #print "$cmd\n";
 @cmdoutput = `$cmd 2>&1`;
 if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
@@ -32,9 +34,9 @@ foreach my $subfolder (@cmdoutput)
 
     #my $folderdate = substr($subfolder, 0, 10);
     #print "folderdate: $folderdate";
-    if (substr($subfolder, 0, 10) eq $today ) {print        "    today, ";}
+    if (substr($subfolder, 0, 10) eq $today ) {print        "     today, ";}
     elsif (substr($subfolder, 0, 10) eq $yesterday ) {print " yesterday, ";} 
-    else {print " " . substr($subfolder, 0, 10) . ", ";}
+    else {print substr($subfolder, 0, 10) . ", ";}
     
     $subfolder =~ m/.{11}(..).(..).(..)/;
     print "$1:$2: ";
@@ -43,20 +45,33 @@ foreach my $subfolder (@cmdoutput)
     $cmd2 = "ls ./$simtype/$subfolder/results/results.mat";
     #print "${cmd2}\n";
     @cmdoutput2 = `$cmd2 2>&1`;
-    unless ($?) {print "finished!\n"; }
+    unless ($?) { print "finished!\n"; }
     else 
     { 
-	print "still running... "; 
+	# check if there was an error or if it is just still running:
+        my $cmd3 = "ls ./$simtype/$subfolder/results/screenerrors.txt -s"; #print "${cmd3}\n";
+        my $cmdoutput3 = `$cmd3 2>&1`;
+        #if ($?) {print "\n${cmdoutput3}\n"; print 'WARNING: It seems that the above folder does not contain a file called "screenerrors.txt". Old folder?';};
+        if (substr($cmdoutput3,0,1) eq "0")
+        {        
+	    print "still running... "; 
 	
-        my $cmd3 = "tail -n 3 ./$simtype/$subfolder/results/screenoutput.txt";
-        #print "${cmd3}\n";
-        my @cmdoutput3 = `$cmd3 2>&1`;
-        if ($?) {print "\n@{cmdoutput3}\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
-        chomp(@cmdoutput3);
-        if ($cmdoutput3[0] =~ m/((remaining): (.*))\s*/) { print "($1)\n"; }
-        else {print "(no data on remaining time available yet)\n";}
+    	    my $cmd4 = "tail -n 3 ./$simtype/$subfolder/results/screenoutput.txt"; #print "${cmd4}\n";
+    	    my @cmdoutput4 = "lala";
+    	    @cmdoutput4 = `$cmd4 2>&1`;
+    	    if ($?) {print "\n@{cmdoutput4}\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
+    	    chomp(@cmdoutput4);
+    	    if ( (@cmdoutput4 ne "") && ($cmdoutput4[0] =~ m/((remaining): (.*))\s*/) ) { print "($1)\n"; }
+    	    else {print "(no data on remaining time available yet)\n";}
         
-        #print " @{cmdoutput3}";
+    	    #print " @{cmdoutput4}";
+	}
+	else
+	{
+	    print "error! (see ./$simtype/$subfolder/results/screenerrors.txt on server)\n";
+	}
+
+
 	
     }
     #print " @{cmdoutput2}";
