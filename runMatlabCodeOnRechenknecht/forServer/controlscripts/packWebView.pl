@@ -42,8 +42,13 @@ my @subfolders = `$cmd 2>&1`;
 if ($?) {print "\n@subfolders\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
 #print " @subfolders";
 chomp(@subfolders);
-foreach my $subfolder (@subfolders)
+my @simstartdates;
+my @simstarttimes;
+my @simstatuses;
+#foreach my $subfolder (@subfolders)
+for (my $i = 0; $i < $#subfolders; $i++)
 {
+    my $subfolder = $subfolders[$i];
     my $cmd2;
     my @cmdoutput2;
 
@@ -94,6 +99,10 @@ foreach my $subfolder (@subfolders)
     }
     #print " @{cmdoutput2}";
     
+    ## Store sim metadata: ##
+    $simstartdates[$i] = $simstartdate;
+    $simstarttimes[$i] = $simstarttime;
+    $simstatuses[$i] = $simstatus;
     
     ## Copy to web folder ##
     $cmd = "mkdir -p ./webview/$simtype/$subfolder"; #print "$cmd\n";
@@ -116,3 +125,56 @@ print "Done.\n";
 
     
 ## Generate HTML file ##
+print "Generating html summary file... ";
+
+open(SUMMARYFILE, "> ./webview/$simtype/index.html") or die "Can't write to file ./webview/$simtype/index.html: $!";
+
+# Make HTML header:
+print SUMMARYFILE '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">', "\n";
+print SUMMARYFILE "<html><head><title>$simtype Simulation Results</title>";
+#print OUTKFILE "<meta HTTP-EQUIV=\"REFRESH\" content=\"2; url=/$mainmenucache#$ENV{QUERY_STRING}\">";
+print SUMMARYFILE "</head><body link='#000000' vlink='#000000' alink='blue' bgcolor='#E0E0E0'>\n";
+print SUMMARYFILE "<font FACE='Helvetica, Arial, Verdana, Tahoma'>";
+print SUMMARYFILE "<h1>Simulation Results</h1>\n";
+print SUMMARYFILE "<h2>Last $lastN $simtype:</h2>\n";
+#print OUTKFILE "<br>\n";
+
+print SUMMARYFILE "<table><tr>\n";
+# headers:
+for (my $i = 0; $i < $#subfolders; $i++)
+{
+    print SUMMARYFILE "<th> $simstartdates[$i], $simstarttimes[$i] </th>\n";
+}
+print SUMMARYFILE "</tr><tr>\n";
+for (my $i = 0; $i < $#subfolders; $i++)
+{
+    print SUMMARYFILE "<th> $simstatuses[$i] </th>\n";
+}
+print SUMMARYFILE "</tr><tr>\n";
+# data:
+for (my $i = 0; $i < $#subfolders; $i++)
+{
+    print SUMMARYFILE "<td> images... textfiles... </td>\n";
+}
+
+print SUMMARYFILE "</tr></table>\n\n";
+
+my $timestring = scalar( localtime(time));
+print SUMMARYFILE "This page was generated at $timestring .<br>\n";
+print SUMMARYFILE "</body></html>\n";
+close(SUMMARYFILE);
+
+print "Done.\n";
+
+
+## Pack into tgz archive for transfer ##
+print "Now packaging into ${simtype}_webview.tgz for transfer... ";
+
+$cmd = "tar czf ./webview/${simtype}_webview.tgz ./webview/$simtype"; #print "$cmd\n";
+@cmdoutput = `$cmd 2>&1`; if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
+#print "@cmdoutput";
+
+print "Done.\n";
+
+
+
