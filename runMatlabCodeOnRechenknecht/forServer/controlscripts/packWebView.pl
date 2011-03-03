@@ -14,8 +14,8 @@ my $yesterday =  $1 . ($2 - 1);
 
 my $hostname = `hostname`;
 chomp($hostname);
-print "Welcome to $hostname!\n";
-print "Working in $cwd\n";
+print " Welcome to $hostname!\n";
+print " Working in $cwd\n";
 
 my $simtype = "singletrials";
 
@@ -30,12 +30,12 @@ if ($#ARGV >= 0)
 if ( $lastN > 0 )
 {
     $cmd = "ls -1 $simtype/ | tail -n $lastN";
-    print "Copying last $lastN results of $simtype... ";
+    print " Copying last $lastN results of $simtype... ";
 }
 else
 { 
     $cmd = "ls -1 $simtype/";
-    print "Copying all results of $simtype... ";
+    print " Copying all results of $simtype... ";
 }
 #print "$cmd\n";
 my @subfolders = `$cmd 2>&1`;
@@ -83,7 +83,7 @@ for (my $i = 0; $i <= $#subfolders; $i++)
     	    @cmdoutput4 = `$cmd4 2>&1`;
     	    if ($?) {print "\n@{cmdoutput4}\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
     	    chomp(@cmdoutput4);
-    	    if ( (@cmdoutput4 ne "") && ($cmdoutput4[0] =~ m/((remaining): (.*))\s*/) ) { $simstatus .= "($3 $2)"; }
+    	    if ( (@cmdoutput4) && ($cmdoutput4[0] =~ m/((remaining): (.*))\s*/) ) { $simstatus .= "($3 $2)"; }
     	    else {$simstatus .= "(no data on remaining time available yet)";}
         
     	    #print " @{cmdoutput4}";
@@ -125,7 +125,7 @@ print "Done.\n";
 
     
 ## Generate HTML file ##
-print "Generating html summary file... ";
+print " Generating html summary file... ";
 
 open(SUMMARYFILE, "> ./webview/$simtype/index.html") or die "Can't write to file ./webview/$simtype/index.html: $!";
 
@@ -174,7 +174,7 @@ print "Done.\n";
 
 
 ## Pack into tgz archive for transfer ##
-print "Now packaging into ${simtype}_webview.tgz for transfer... ";
+print " Now packaging into ${simtype}_webview.tgz for transfer... ";
 
 $cmd = "tar czf ./webview/${simtype}_webview.tgz ./webview/$simtype"; #print "$cmd\n";
 @cmdoutput = `$cmd 2>&1`; if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
@@ -206,7 +206,11 @@ sub generateFullscreen
     
     print FULLSCREENFILE "<h1>Viewing trial: $simstartdates[$i], $simstarttimes[$i] </h1>";
     print FULLSCREENFILE "<h3>Status: $simstatuses[$i]</h3>";
-    
+
+    if ($simstatuses[$i] eq "finished!")
+    {
+	print FULLSCREENFILE "To access the results, type: <pre>rm ./RemoteResults/* ; scp nyquist.isip.uni-luebeck.de:$cwd/$simtype/$subfolders[$i]/results/* ./RemoteResults </pre>";
+    }
     
     # HTML table
     #print FULLSCREENFILE "<table border=0 ><tr><td valign='top'>";
@@ -255,6 +259,13 @@ sub generateFullscreen
     $cmd = "cat ./webview/$simtype/$subfolders[$i]/screenoutput.txt"; #print "$cmd\n";
     @cmdoutput = `$cmd 2>&1`; if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
     print FULLSCREENFILE "<pre>@cmdoutput</pre>"; 
+
+    ## Server & PID:
+    print FULLSCREENFILE "<h2>Server and PID:</h2>\n";
+    $cmd = "cat ./$simtype/$subfolders[$i]/results/hostnamepid.txt"; #print "$cmd\n";
+    @cmdoutput = `$cmd 2>&1`; if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
+    print FULLSCREENFILE "<pre>@cmdoutput</pre>"; 
+    print FULLSCREENFILE "To access the results, type: <pre>scp nyquist.isip.uni-luebeck.de:$cwd/$simtype/$subfolders[$i]/results/results.mat . </pre>";
 
     
     # HTML table
@@ -342,7 +353,7 @@ sub generateiFrame
     $cmd = "cat ./$simtype/$subfolders[$i]/results/hostnamepid.txt"; #print "$cmd\n";
     @cmdoutput = `$cmd 2>&1`; if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
     print IFRAMEFILE "<pre>@cmdoutput</pre>"; 
-    print "The results were stored in the file results.mat .";
+    print IFRAMEFILE "The results were stored in the file nyquist.isip.uni-luebeck.de:$cwd/$simtype/$subfolders[$i]/results/results.mat .";
 
     
     # HTML table

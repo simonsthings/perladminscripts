@@ -61,7 +61,7 @@ foreach my $subfolder (@cmdoutput)
     	    @cmdoutput4 = `$cmd4 2>&1`;
     	    if ($?) {print "\n@{cmdoutput4}\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
     	    chomp(@cmdoutput4);
-    	    if ( (@cmdoutput4 ne "") && ($cmdoutput4[0] =~ m/((remaining): (.*))\s*/) ) { print "($1)\n"; }
+    	    if ( (@cmdoutput4) && ($cmdoutput4[0] =~ m/((remaining): (.*))\s*/) ) { print "($1)\n"; }
     	    else {print "(no data on remaining time available yet)\n";}
         
     	    #print " @{cmdoutput4}";
