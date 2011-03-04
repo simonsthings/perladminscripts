@@ -32,9 +32,10 @@ print "Upload seems to have been successful!\n\n";
 # execute script on server:
 $cmd = "ssh -n $nextServer.isip.uni-luebeck.de \"cd $remotefolder ; controlscripts/run_singletrail.pl\" ";
 print "Executing startup script on the server ...\n";
-@cmdoutput = `$cmd 2>&1`;  # The 2>&1 makes all screen output be written to the web page. 
+@cmdoutput = `$cmd 1>&2`;  # The 2>&1 makes all screen output be written to the web page. 
 if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why.\n';};
-print "@cmdoutput";
+#print "@cmdoutput";
+#print "\n";
 print "The simulation seems to have been started successfully!\n";
 
 ## End of script. ##
@@ -61,7 +62,7 @@ sub findNextServer
         # check if this is better than last:
         if ($line =~ m/^(\d+\.\d+)\s.*/)
         {
-            if ( ($1 < $minLoad) && ($currentServer ne "shannon") )
+            if ( ($1 < $minLoad) && ($currentServer ne "shannon") && ($currentServer ne "euler") && ($currentServer ne "cauchy") )
         {
             #print "NEW MIN LOAD!";
             $minLoad = $1;

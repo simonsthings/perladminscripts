@@ -26,7 +26,7 @@ foreach my $line (@lines)
     if ($line =~ m/^(\d+\.\d+)\s.*/)
     {
 	#print "scanning load line. comparing $1 to $minLoad ...\n";
-        if ( ($1 < $minLoad) && ($currentServer ne "shannon") )
+        if ( ($1 < $minLoad) && ($currentServer ne "shannon") && ($currentServer ne "euler") && ($currentServer ne "cauchy") )
 	{
 	    #print "NEW MIN LOAD!\n";
 	    $minLoad = $1;

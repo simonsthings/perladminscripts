@@ -3,6 +3,7 @@
 use strict;	# Make us need to declare each variable for easier error tracking
 use Cwd;
 
+my $lastN = 20;
 my $cmd;
 my @cmdoutput;
 my $cwd = cwd;
@@ -18,9 +19,23 @@ print "Working in $cwd\n";
 
 my $simtype = "singletrials";
 
-$cmd = "ls -1 $simtype/";
-# show last 20 entries or all if wanted:
-if ( ($#ARGV == -1) || ($ARGV[0] ne "-a") ) {$cmd .= " | tail -n 20";}
+if ($#ARGV >= 0)                                                                                                                                                                          
+{                                                                                                                                                                                         
+    if ($ARGV[0] eq "-a") {$lastN=0;}                                                                                                                                                     
+    elsif ($ARGV[0] eq "-n") {$lastN=$ARGV[1];}                                                                                                                                           
+    else {die("Unrecognised command line option. Please use either '-a' or '-n #' (where # is number of last trials)");}                                                                  
+}
+# show last 20 entries or all if wanted:                                                                                                                                                  
+if ( $lastN > 0 )                                                                                                                                                                         
+{                                                                                                                                                                                         
+    $cmd = "ls -1 $simtype/ | tail -n $lastN";                                                                                                                                            
+    print " Copying last $lastN results of $simtype... ";                                                                                                                                 
+}                                                                                                                                                                                         
+else                                                                                                                                                                                      
+{                                                                                                                                                                                        
+    $cmd = "ls -1 $simtype/";                                                                                                                                                             
+    print " Copying all results of $simtype... ";
+}
 #print "$cmd\n";
 @cmdoutput = `$cmd 2>&1`;
 if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
@@ -39,8 +54,15 @@ foreach my $subfolder (@cmdoutput)
     else {print substr($subfolder, 0, 10) . ", ";}
     
     $subfolder =~ m/.{11}(..).(..).(..)/;
-    print "$1:$2: ";
+    print "$1:$2";
     #print substr($subfolder, 11, 8) . ": ";
+    
+    ## Also show server on which the simulation was run:
+    $cmd = "head -n 1 ./$simtype/$subfolder/results/hostnamepid.txt"; #print "$cmd\n";
+    my $targethostname = `$cmd 2>&1`;
+    if ($?) {print "\n$targethostname\n"; print 'WARNING: It seems that the above command did not work ';};
+    chomp($targethostname);
+    print ", $targethostname:\t ";
     
     $cmd2 = "ls ./$simtype/$subfolder/results/results.mat";
     #print "${cmd2}\n";
@@ -75,7 +97,6 @@ foreach my $subfolder (@cmdoutput)
 	
     }
     #print " @{cmdoutput2}";
-    
     
 }
 

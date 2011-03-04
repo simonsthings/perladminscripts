@@ -26,6 +26,13 @@ if ($#ARGV >= 0)
     else {die("Unrecognised command line option. Please use either '-a' or '-n #' (where # is number of last trials)");}
 }
 
+## Delete old web folder ##
+print " Removing old temp folder...\n";
+$cmd = "rm -R ./webview/$simtype"; #print "$cmd\n";
+@cmdoutput = `$cmd 2>&1`; if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
+print "@cmdoutput";
+
+
 # show last 20 entries or all if wanted:
 if ( $lastN > 0 )
 {
@@ -45,6 +52,7 @@ chomp(@subfolders);
 my @simstartdates;
 my @simstarttimes;
 my @simstatuses;
+my @simhostnames;
 #foreach my $subfolder (@subfolders)
 for (my $i = 0; $i <= $#subfolders; $i++)
 {
@@ -63,6 +71,14 @@ for (my $i = 0; $i <= $#subfolders; $i++)
     $subfolder =~ m/.{11}(..).(..).(..)/;
     $simstarttime = "$1:$2";
     #print substr($subfolder, 11, 8) . ": ";
+
+    ## Server on which simulation was run:
+    $cmd = "head -n 1 ./$simtype/$subfolder/results/hostnamepid.txt"; #print "$cmd\n";                                                                                                    
+    my $simhostname = `$cmd 2>&1`;                                                                                                                                                     
+    if ($?) {print "\n$simhostname\n"; print 'WARNING: It seems that the above command did not work ';};                                                                               
+    chomp($simhostname);                                                                                                                                                               
+    #print "$targethostname\t: ";                                                                                                                                                          
+
     
     my $simstatus;
     $cmd2 = "ls ./$simtype/$subfolder/results/results.mat";
@@ -103,6 +119,7 @@ for (my $i = 0; $i <= $#subfolders; $i++)
     $simstartdates[$i] = $simstartdate;
     $simstarttimes[$i] = $simstarttime;
     $simstatuses[$i] = $simstatus;
+    $simhostnames[$i] = $simhostname;
     
     ## Copy to web folder ##
     $cmd = "mkdir -p ./webview/$simtype/$subfolder"; #print "$cmd\n";
@@ -144,6 +161,11 @@ print SUMMARYFILE "<table border=1 rules='all' frame='outer' cellspacing=0 cellp
 for (my $i = ($#subfolders); $i >= 0; $i--)
 {
     print SUMMARYFILE "<th border=0> $simstartdates[$i] <br> $simstarttimes[$i] </th>\n";
+}
+print SUMMARYFILE "</tr><tr>\n";
+for (my $i = ($#subfolders); $i >= 0; $i--)
+{
+    print SUMMARYFILE "<th> $simhostnames[$i] </th>\n";
 }
 print SUMMARYFILE "</tr><tr>\n";
 for (my $i = ($#subfolders); $i >= 0; $i--)
@@ -212,8 +234,12 @@ sub generateFullscreen
 	print FULLSCREENFILE "To access the results, type: <pre>rm ./RemoteResults/* ; scp nyquist.isip.uni-luebeck.de:$cwd/$simtype/$subfolders[$i]/results/* ./RemoteResults </pre>";
     }
     
-    # HTML table
-    #print FULLSCREENFILE "<table border=0 ><tr><td valign='top'>";
+    ## Simulation Commands:
+    print FULLSCREENFILE "<h2>Simulation Main File:</h2>\n";
+    $cmd = "cat ./$simtype/$subfolders[$i]/codeandinputdata/remoteMain.m"; #print "$cmd\n";
+    @cmdoutput = `$cmd 2>&1`; if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
+    print FULLSCREENFILE "<pre> @cmdoutput</pre>"; 
+
 
     ## Images:
     print FULLSCREENFILE "<h2>Images:</h2>\n";    
@@ -230,21 +256,39 @@ sub generateFullscreen
     {
 	chomp(@imagefiles);
 	#print FULLSCREENFILE "@imagefiles";
+
+	# HTML table
+	print FULLSCREENFILE "<table border=0 ><tr><td nowrap>";
+	my $lastfig = "none";
+	my $currentfig = "none";
 	foreach my $imagefile (@imagefiles)
 	{
+	    # Extract first part of current file:
+	    if ($imagefile =~ m/^([^_]+)_/) {$currentfig = "$1";} else {die "ERROR: The file '$imagefile' does not contain '_' character!";}
+	    #print "lastfig: '$lastfig', currentfig: '$currentfig'  \n";
+	    # Compare to first part of last file:
+	    if ($currentfig ne $lastfig)
+	    {
+		print FULLSCREENFILE "</td></tr><tr><td valign='top'>";
+	    }
+	    else
+	    {
+		print FULLSCREENFILE "</td><td valign='top'>";
+	    }
+	    $lastfig = $currentfig;
+	    
+	    # Generate HTML code for image and filename:
 	    print FULLSCREENFILE "<a name='$imagefile'></a><img src='./$imagefile' > <br>";
 	    print FULLSCREENFILE "$imagefile <br><br>\n";
 	}
+	print FULLSCREENFILE "</td></tr></table>";
     }
-
-    # HTML table
-    #print FULLSCREENFILE "</td><td valign='top'>";
 
     ## Errors:
     $cmd = "cat ./webview/$simtype/$subfolders[$i]/screenerrors.txt"; #print "$cmd\n";
     my @anyerrors = `$cmd 2>&1`; if ($?) {print "\n@anyerrors\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
     #print "@anyerrors";
-    print FULLSCREENFILE "<h2>Errors:</h2>";    
+    print FULLSCREENFILE "<h2>Errors:</h2>";
     if ("@anyerrors" ne "")
     {
 	print FULLSCREENFILE "<pre>@anyerrors</pre>"; 
@@ -267,12 +311,8 @@ sub generateFullscreen
     print FULLSCREENFILE "<pre>@cmdoutput</pre>"; 
     print FULLSCREENFILE "To access the results, type: <pre>scp nyquist.isip.uni-luebeck.de:$cwd/$simtype/$subfolders[$i]/results/results.mat . </pre>";
 
-    
-    # HTML table
-    #print FULLSCREENFILE "</td></tr></table>";
-    
     close FULLSCREENFILE;
-    
+
     return "./$subfolders[$i]/fullscreen.html";
 }
 
