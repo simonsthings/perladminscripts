@@ -16,9 +16,20 @@ if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has
 #print "@cmdoutput";
 print "The m-files have been packaged to 'm-files.tgz'\n\n";
 
-# find free server:
-my ($nextServer,$minLoad) = findNextServer();
-print "Detected free server (load: $minLoad%): $nextServer \n";
+my ($nextServer,$minLoad);
+if ($ARGV[0] ne "")
+{
+    # use given server
+    $nextServer = $ARGV[0];
+    $minLoad = "unknown";
+    print "Using given server: $ARGV[0] \n";
+}
+else
+{
+    # find free server:
+    ($nextServer,$minLoad) = findNextServer();
+    print "Detected free server (load: $minLoad%): $nextServer \n";
+}
 
 # Send .tgz file to server:
 my $serverURI = "$nextServer.isip.uni-luebeck.de:$remotefolder";
@@ -62,7 +73,7 @@ sub findNextServer
         # check if this is better than last:
         if ($line =~ m/^(\d+\.\d+)\s.*/)
         {
-            if ( ($1 < $minLoad) && ($currentServer ne "shannon") && ($currentServer ne "euler") && ($currentServer ne "cauchy") )
+            if ( ($1 < $minLoad) && ($currentServer ne "shannon") && ($currentServer ne "fermi") && ($currentServer ne "euler") && ($currentServer ne "cauchy") )
         {
             #print "NEW MIN LOAD!";
             $minLoad = $1;

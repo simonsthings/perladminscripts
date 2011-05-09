@@ -14,8 +14,8 @@ my @cmdoutput;
 
 print "Packing & Fetching simulation results from server. \n";
 
-#$cmd = "scp $localServerscriptPath/$remotefilename nyquist.isip.uni-luebeck.de:$remotefolder/controlscripts/"; #print "$cmd\n";
-#@cmdoutput = `$cmd 2>&1`; print "@cmdoutput";
+$cmd = "scp $localServerscriptPath/$remotefilename nyquist.isip.uni-luebeck.de:$remotefolder/controlscripts/"; #print "$cmd\n";
+@cmdoutput = `$cmd 2>&1`; print "@cmdoutput";
 
 $cmd = "ssh -n nyquist.isip.uni-luebeck.de \"cd $remotefolder ; ./$remotefilename @ARGV \""; #print "$cmd\n";
 @cmdoutput = `$cmd 1>&2`; #print " @cmdoutput";

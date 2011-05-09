@@ -231,7 +231,8 @@ sub generateFullscreen
 
     if ($simstatuses[$i] eq "finished!")
     {
-	print FULLSCREENFILE "To access the results, type: <pre>rm ./RemoteResults/* ; scp nyquist.isip.uni-luebeck.de:$cwd/$simtype/$subfolders[$i]/results/* ./RemoteResults </pre>";
+	print FULLSCREENFILE "To access the images, type: <pre>rm ./RemoteResults/* ; scp nyquist.isip.uni-luebeck.de:$cwd/$simtype/$subfolders[$i]/results/* ./RemoteResults </pre>";
+	print FULLSCREENFILE "To access the results, type: <pre>rm ./RemoteResults/* ; scp nyquist.isip.uni-luebeck.de:$cwd/$simtype/$subfolders[$i]/results/results.mat ./RemoteResults ; scp nyquist.isip.uni-luebeck.de:$cwd/$simtype/$subfolders[$i]/codeandinputdata/* ./RemoteResults </pre>";
     }
     
     ## Simulation Commands:
