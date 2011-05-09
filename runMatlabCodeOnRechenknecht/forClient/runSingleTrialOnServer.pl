@@ -17,7 +17,7 @@ if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has
 print "The m-files have been packaged to 'm-files.tgz'\n\n";
 
 my ($nextServer,$minLoad);
-if ($ARGV[0] ne "")
+if ($#ARGV > 0)
 {
     # use given server
     $nextServer = $ARGV[0];

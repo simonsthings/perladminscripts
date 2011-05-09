@@ -28,7 +28,7 @@ if ($#ARGV >= 0)
 
 ## Delete old web folder ##
 print " Removing old temp folder...\n";
-$cmd = "rm -R ./webview/$simtype"; #print "$cmd\n";
+$cmd = "rm -r ./webview/$simtype"; #print "$cmd\n";
 @cmdoutput = `$cmd 2>&1`; if ($?) {print "\n@cmdoutput\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
 print "@cmdoutput";
 
