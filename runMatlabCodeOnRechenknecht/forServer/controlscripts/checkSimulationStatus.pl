@@ -4,6 +4,7 @@ use strict;	# Make us need to declare each variable for easier error tracking
 use Cwd;
 
 my $lastN = 20;
+my $caterrors = 0;
 my $cmd;
 my @cmdoutput;
 my $cwd = cwd;
@@ -23,6 +24,7 @@ if ($#ARGV >= 0)
 {                                                                                                                                                                                         
     if ($ARGV[0] eq "-a") {$lastN=0;}                                                                                                                                                     
     elsif ($ARGV[0] eq "-n") {$lastN=$ARGV[1];}                                                                                                                                           
+    elsif ($ARGV[0] eq "-e") {$caterrors=1;}
     else {die("Unrecognised command line option. Please use either '-a' or '-n #' (where # is number of last trials)");}                                                                  
 }
 # show last 20 entries or all if wanted:                                                                                                                                                  
@@ -90,7 +92,24 @@ foreach my $subfolder (@cmdoutput)
 	}
 	else
 	{
-	    print "error! (see ./$simtype/$subfolder/results/screenerrors.txt on server)\n";
+	    if ($caterrors)
+	    {
+		print "error! (See screenerrors.txt below)\n";
+		print "     Contents of $cwd/$simtype/$subfolder/results/screenerrors.txt:\n";
+    		my $cmd5 = "cat ./$simtype/$subfolder/results/screenerrors.txt"; #print "${cmd5}\n";
+    		my @cmdoutput5 = `$cmd5 2>&1`;
+    		if ($?) {print "\n@{cmdoutput5}\n"; die 'ERROR: It seems that the above command has not worked! Read the screen output to find out why';};
+    		chomp(@cmdoutput5);
+    		foreach my $line5 (@cmdoutput5)
+    		{
+    		    if (length($line5) > 3)  
+    		    {print "          $line5\n";}
+    		}
+	    }
+	    else
+	    {
+		print "error! (see ./$simtype/$subfolder/results/screenerrors.txt on server)\n";
+	    }
 	}
 
 
